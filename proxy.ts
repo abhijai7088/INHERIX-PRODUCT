@@ -37,7 +37,11 @@ function matchesDashboardPrefix(pathname: string, prefix: string) {
 }
 
 function applyRedirect(target: URL, redirectTo: string) {
-  const redirectUrl = new URL(redirectTo, target);
+  const baseUrl = process.env.FRONTEND_ORIGIN || target.origin;
+  const redirectUrl = new URL(redirectTo, baseUrl);
+  target.protocol = redirectUrl.protocol;
+  target.host = redirectUrl.host;
+  target.port = redirectUrl.port;
   target.pathname = redirectUrl.pathname;
   target.search = redirectUrl.search;
   target.hash = redirectUrl.hash;
@@ -81,6 +85,13 @@ async function resolveBackendSession(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  if (process.env.FRONTEND_ORIGIN) {
+    const originUrl = new URL(process.env.FRONTEND_ORIGIN);
+    request.nextUrl.protocol = originUrl.protocol;
+    request.nextUrl.host = originUrl.host;
+    request.nextUrl.port = originUrl.port;
+  }
+
   const { pathname } = request.nextUrl;
   const hasFrontendAccessToken = Boolean(request.cookies.get("inherix_access_token")?.value);
 

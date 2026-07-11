@@ -30,9 +30,8 @@ export function GET(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const url = request.nextUrl.clone();
-  url.pathname = nextPath;
-  url.search = "";
+  const baseUrl = process.env.FRONTEND_ORIGIN || request.nextUrl.origin;
+  const url = new URL(nextPath, baseUrl);
 
   const response = NextResponse.redirect(url);
   response.cookies.set({

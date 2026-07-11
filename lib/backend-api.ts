@@ -13,6 +13,9 @@ export class BackendApiError extends Error {
 }
 
 export function getBackendApiBaseUrl() {
+  if (typeof window === "undefined" && process.env.API_BASE_URL) {
+    return process.env.API_BASE_URL.replace(/\/+$/, "");
+  }
   return (process.env.NEXT_PUBLIC_API_BASE_URL ?? fallbackBaseUrl).replace(/\/+$/, "");
 }
 

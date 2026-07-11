@@ -1,0 +1,9 @@
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'VERIFICATION_OFFICER';
+
+ALTER TABLE permissions
+  ADD COLUMN IF NOT EXISTS module VARCHAR(100) NOT NULL DEFAULT 'general';
+
+UPDATE permissions
+SET module = COALESCE(module, 'general')
+WHERE module IS NULL;
+

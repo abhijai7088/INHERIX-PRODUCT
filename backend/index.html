@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prabhash Dubey - Resume</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --link-color: #0066cc;
+            --text-color: #333;
+            --header-font-size: 24px;
+            --section-title-size: 13.5px;
+            --body-font-size: 10.8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            line-height: 1.25;
+            color: var(--text-color);
+            background-color: #f4f4f4;
+            padding: 10px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Download Button Styling */
+        #download-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background-color: var(--link-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-family: 'Noto Sans', sans-serif;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        #download-btn:hover {
+            background-color: #004a99;
+            transform: translateY(-2px);
+        }
+
+        .resume-container {
+            background-color: #fff;
+            width: 210mm; /* A4 Width */
+            min-height: 297mm; /* A4 Height */
+            margin: 0 auto;
+            padding: 0.5cm 1.2cm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        @media print {
+            body { 
+                background: none; 
+                padding: 0; 
+            }
+            #download-btn { 
+                display: none; 
+            }
+            .resume-container { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                min-height: 100vh;
+                padding: 0.4cm 1.0cm;
+            }
+            a {
+                text-decoration: none;
+                color: var(--link-color) !important;
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        h1 {
+            font-size: var(--header-font-size);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .headline {
+            font-size: 12px;
+            font-weight: 700;
+            margin: 1px 0;
+            color: #444;
+        }
+
+        .contact-info {
+            font-size: 10px;
+            margin-top: 1px;
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            position: relative;
+            z-index: 10;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        section {
+            margin-top: 5px;
+        }
+
+        .section-title {
+            font-size: var(--section-title-size);
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1.5px solid #222;
+            margin-bottom: 2px;
+            padding-bottom: 1px;
+        }
+
+        .content {
+            font-size: var(--body-font-size);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .tech-stack {
+            font-style: italic;
+            margin-bottom: 1px;
+            font-size: 10px;
+            color: #555;
+        }
+
+        ul {
+            margin-left: 14px;
+            list-style-type: disc;
+        }
+
+        li {
+            margin-bottom: 0px;
+        }
+
+        .project-link {
+            font-weight: 700;
+            margin-top: 1px;
+            display: block;
+            font-size: 10px;
+        }
+
+        .education-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .space-above {
+            margin-top: 2px;
+        }
+
+    </style>
+</head>
+<body>
+
+<button id="download-btn" onclick="window.print()">Download PDF</button>
+
+<div class="resume-container">
+    <header>
+        <h1>Prabhash Dubey</h1>
+        <div class="headline">Corporate Law Student | Legal Drafting • Corporate Compliance • Tax Filings (GST &amp; ITR)</div>
+        <div class="contact-info">
+            Gorakhpur, India &nbsp;|&nbsp; +91 9795847240 &nbsp;|&nbsp; <a href="mailto:dubeyh996@gmail.com">dubeyh996@gmail.com</a>
+        </div>
+        <div class="contact-info">
+            <a href="https://www.linkedin.com/">Linkedin</a> &nbsp;|&nbsp; 
+            <a href="https://github.com/">GitHub (Legal Portfolio)</a>
+        </div>
+    </header>
+
+    <section>
+        <div class="section-title">Professional Summary</div>
+        <div class="content">
+            Dedicated LL.B student (currently in 2nd Year) at Deen Dayal Upadhyay Gorakhpur University with a strong foundation in corporate law, taxation rules, and legal technology. Hands-on experience in drafting commercial agreements, framing structured legal notices, and assisting with financial-legal compliances including GST registrations and Income Tax Returns (ITR). Equipped with advanced computer proficiency through ADCA and professional accounting software like Tally. Interested in combining analytical legal reasoning and technological tools to solve real-world corporate law, taxation, and regulatory compliance problems.
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">Education</div>
+        <div class="content">
+            <div class="education-row">
+                <strong>LL.B. (3-Year Degree Program) — Currently in 2nd Year (IV Semester)</strong>
+                <span>Batch: 2024–2027</span>
+            </div>
+            <div class="education-row">
+                <span>Deen Dayal Upadhyay Gorakhpur University, Gorakhpur</span>
+                <span>CGPA / Percentage: [Your Current Score]</span>
+            </div>
+            <div style="margin-top: 2px; margin-bottom: 4px;"><strong>Core Specializations:</strong> Company Law, Law of Contracts, Corporate Taxation, Banking Law, IPR</div>
+
+            <div class="education-row" style="border-top: 1px solid #eee; padding-top: 2px; margin-top: 2px;">
+                <strong>Bachelor of Arts (B.A.)</strong>
+                <span>Batch: 2021–2024</span>
+            </div>
+            <div class="education-row">
+                <span>[Your Graduation College / University]</span>
+                <span>CGPA / Percentage: [Your Score]</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">Core Skills</div>
+        <div class="content">
+            <strong>Legal Practice Areas:</strong> Corporate Law, Commercial Contract Law, Direct &amp; Indirect Taxation (GST &amp; ITR Filing), Legal Notices <br>
+            <strong>Drafting &amp; Review:</strong> Non-Disclosure Agreements (NDAs), Vendor Contracts, Formal Legal Notices, Tax Filings, Board Resolutions <br>
+            <strong>Technical &amp; Financial Tools:</strong> Tally ERP 9, ADCA (Advanced Diploma in Computer Applications), MS Office (Word, Excel, PowerPoint) <br>
+            <strong>Research &amp; Databases:</strong> SCC Online, Manupatra, LexisNexis, Legal Tech Tools, Statutory Interpretations <br>
+            <strong>Professional Strengths:</strong> Technical Drafting, Financial-Legal Audits, Compliance Management, Problem Solving, Communication
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">Legal Internships &amp; Experience</div>
+        <div class="content">
+            <div class="project-header">
+                <span>CORPORATE &amp; TAXATION LEGAL INTERN</span>
+                <span>May 2026 – June 2026</span>
+            </div>
+            <div class="tech-stack">Practice Areas: Legal Drafting, GST &amp; ITR Filings, Contract Review</div>
+            <ul>
+                <li>Assisted in preparing and filing multi-tier GST registration applications and monthly compliance returns for corporate clients.</li>
+                <li>Drafted and structured formal legal notices for breach of contract, recovery of dues, and intellectual property infringements.</li>
+                <li>Conducted thorough research on corporate income tax rules and compiled documentation supporting accurate Income Tax Returns (ITR) filing.</li>
+                <li>Reviewed commercial agreements, including Service Level Agreements (SLAs) and NDAs, to identify potential compliance gaps.</li>
+            </ul>
+
+            <div class="project-header space-above">
+                <span>LEGAL INTERN – HIGH COURT / DISTRICT COURT PRACTICE</span>
+                <span>January 2026 – February 2026</span>
+            </div>
+            <div class="tech-stack">Practice Areas: Commercial Litigation, Drafting Legal Notices, Arbitration Cases</div>
+            <ul>
+                <li>Drafted formal legal notices and response briefs for commercial litigation disputes under the supervision of senior advocates.</li>
+                <li>Utilized Manupatra and SCC Online to research judicial precedents on taxation disputes, contract breaches, and regulatory compliance.</li>
+                <li>Attended civil and commercial court proceedings, summarizing case arguments, evidence submissions, and hearing transcripts.</li>
+                <li>Prepared case briefs and indexed extensive document files for pending recovery suits.</li>
+            </ul>
+
+            <div class="project-header space-above">
+                <span>IN-HOUSE LEGAL &amp; COMPLIANCE INTERN</span>
+                <span>June 2025</span>
+            </div>
+            <div class="tech-stack">Practice Areas: Corporate Secretariat, Financial Compliance, Tally Auditing</div>
+            <ul>
+                <li>Integrated legal compliance tasks with Tally database audits, reconciling financial ledger details with statutory GST records.</li>
+                <li>Assisted the legal and secretarial team in drafting corporate board resolutions, board meeting agendas, and official compliance updates.</li>
+                <li>Maintained and organized digital legal notice databases, tracking response timelines and active litigation statuses.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">Achievements &amp; Activities</div>
+        <div class="content">
+            <ul>
+                <li><strong>Winner / Best Researcher</strong> – University Level Moot Court Competition</li>
+                <li><strong>Completed Certified Course</strong> – Practical Training on GST &amp; ITR E-Filing procedures</li>
+                <li><strong>Core Member</strong> – Legal Aid Clinic, DDU Gorakhpur University (provided regulatory counseling and tech assistance)</li>
+                <li>Completed certified professional course on "Advanced Legal Drafting" &amp; "Tally Professional Operations"</li>
+            </ul>
+        </div>
+    </section>
+
+    <section style="margin-top: 5px; border-top: 1px dashed #ccc; padding-top: 3px;">
+       
+    </section>
+</div>
+
+</body>
+</html>

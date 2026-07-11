@@ -1,0 +1,103 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import ActivityLogs from "@/components/dashboard/ActivityLogs";
+import BackupExport from "@/components/dashboard/BackupExport";
+import EmergencyStatus from "@/components/dashboard/EmergencyStatus";
+import GovernanceSection from "@/components/dashboard/GovernanceSection";
+import OverviewCards from "@/components/dashboard/OverviewCards";
+import QuickActions from "@/components/dashboard/QuickActions";
+import TopHeader from "@/components/dashboard/TopHeader";
+import VerificationStatus from "@/components/dashboard/VerificationStatus";
+import AuditActivity from "@/components/dashboard/AuditActivity";
+import { getCurrentUser } from "@/lib/trigger-api";
+import { inferAccountRole } from "@/lib/account";
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      try {
+        const me = await getCurrentUser();
+        const role = inferAccountRole(me.user.role, me.permissions);
+        setLoadError(null);
+
+        if (!active) {
+          return;
+        }
+
+        if (me.user.mustResetPassword) {
+          router.replace("/onboarding/force-reset-password");
+          return;
+        }
+
+        if (role === "ADMIN" || role === "SUPER_ADMIN") {
+          router.replace("/dashboard/admin");
+          return;
+        }
+
+        if (role === "VERIFICATION_OFFICER") {
+          router.replace("/dashboard/emergency/verification");
+          return;
+        }
+
+        if (role === "NOMINEE") {
+          router.replace("/dashboard/released-documents");
+          return;
+        }
+
+        setReady(true);
+      } catch {
+        if (active) {
+          setLoadError("Your workspace could not be loaded right now.");
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  if (!ready) {
+    return (
+      <div className="p-6 text-sm text-slate-500">
+        {loadError ?? "Loading dashboard..."}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <TopHeader />
+
+      <OverviewCards />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <VerificationStatus />
+        <EmergencyStatus />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ActivityLogs />
+        <AuditActivity />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <QuickActions />
+        <GovernanceSection />
+      </div>
+
+      <BackupExport />
+    </div>
+  );
+}

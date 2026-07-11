@@ -113,7 +113,8 @@ export function createRequestListener(env: AppEnv, logger: Logger, dependencies?
       logger.requestEnd(request, response, requestId, performance.now() - startedAt);
     });
 
-    if (env.NODE_ENV === "production" && !isHttpsRequest(request)) {
+    const isLocal = request.socket.remoteAddress === "127.0.0.1" || request.socket.remoteAddress === "::ffff:127.0.0.1" || request.socket.remoteAddress === "::1";
+    if (env.NODE_ENV === "production" && !isHttpsRequest(request) && !isLocal) {
       sendError(response, requestId, new HttpError(400, "HTTPS_REQUIRED", "HTTPS is required in production."));
       return;
     }

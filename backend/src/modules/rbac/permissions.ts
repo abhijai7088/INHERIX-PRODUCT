@@ -131,7 +131,7 @@ export const RBAC_ROLE_PERMISSION_KEYS: Record<UserRole, RbacPermissionKey[]> = 
 export const RBAC_DASHBOARD_LANDING_PATHS: Record<UserRole, string> = {
   CUSTOMER: "/dashboard",
   NOMINEE: "/dashboard/released-documents",
-  VERIFICATION_OFFICER: "/dashboard/verification",
+  VERIFICATION_OFFICER: "/dashboard/emergency/verification",
   ADMIN: "/dashboard/admin",
   SUPER_ADMIN: "/dashboard/admin",
 };

@@ -1,17 +1,15 @@
 import {
   Activity,
-  Briefcase,
   CheckSquare,
-  Bell,
   FolderOpen,
-  History,
-  Shield,
+  History as HistoryIcon,
   ShieldCheck,
   Settings,
   Upload,
   Users,
   LayoutDashboard,
   UserCog,
+  Link2,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { AccountRole } from "@/lib/account";
@@ -51,7 +49,7 @@ const customerNavigationSections: NavigationSection[] = [
       { title: "Nominees & Family", href: "/dashboard/family", icon: Users },
       { title: "Emergency Access", href: "/dashboard/emergency", icon: ShieldCheck },
       { title: "Family Readiness", href: "/dashboard/tasks", icon: CheckSquare },
-      { title: "Continuity Timeline", href: "/dashboard/logs", icon: History },
+      { title: "Connections", href: "/dashboard/connections", icon: Link2 },
       { title: "Settings", href: "/dashboard/profile", icon: Settings },
     ],
   },
@@ -72,7 +70,7 @@ const verificationNavigationSections: NavigationSection[] = [
   {
     title: "Operations",
     items: [
-      { title: "Verification & Claims", href: "/dashboard/verification", icon: ShieldCheck, requiredPermission: "VERIFICATION_VIEW_ASSIGNED_CASE" },
+      { title: "Verification & Claims", href: "/dashboard/emergency/verification", icon: ShieldCheck, requiredPermission: "VERIFICATION_VIEW_ASSIGNED_CASE" },
     ],
   },
 ];
@@ -89,7 +87,7 @@ const adminNavigationSections: NavigationSection[] = [
     title: "Security & Governance",
     items: [
       { title: "Security Center", href: "/dashboard/security", icon: ShieldCheck, requiredPermission: "ADMIN_VIEW_SECURITY_EVENTS" },
-      { title: "Audit Trail", href: "/dashboard/audit", icon: History, requiredPermission: "ADMIN_VIEW_AUDIT_LOG" },
+      { title: "Audit Trail", href: "/dashboard/audit", icon: HistoryIcon, requiredPermission: "ADMIN_VIEW_AUDIT_LOG" },
     ],
   },
   {

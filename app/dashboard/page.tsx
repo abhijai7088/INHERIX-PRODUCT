@@ -1,81 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Activity, Bell, Calendar, ChevronRight, Download, Lock, Shield, ShieldAlert, ShieldCheck, UserPlus, Users, FileText, CheckCircle2, AlertTriangle, AlertCircle, Share2, PlusCircle, ArrowRight, History } from "lucide-react";
-
-import { getCurrentUser } from "@/lib/trigger-api";
-import { inferAccountRole } from "@/lib/account";
 
 import { useRecordsStore } from "@/components/dashboard/RecordsProvider";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [account, setAccount] = useState<{ fullName: string } | null>(null);
-  
+  // DashboardRouteGate (parent layout) already guarantees only CUSTOMER role reaches this page
   // Use real data from the provider
   const { nominees, records, dashboardStats } = useRecordsStore();
-
-  useEffect(() => {
-    let active = true;
-
-    const load = async () => {
-      try {
-        const me = await getCurrentUser();
-        const role = inferAccountRole(me.user.role, me.permissions);
-        setLoadError(null);
-
-        if (!active) {
-          return;
-        }
-        
-        setAccount(me.user);
-
-        if (me.user.mustResetPassword) {
-          router.replace("/onboarding/force-reset-password");
-          return;
-        }
-
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-          router.replace("/dashboard/admin");
-          return;
-        }
-
-        if (role === "VERIFICATION_OFFICER") {
-          router.replace("/dashboard/emergency/verification");
-          return;
-        }
-
-        if (role === "NOMINEE") {
-          router.replace("/dashboard/released-documents");
-          return;
-        }
-
-        setReady(true);
-      } catch {
-        if (active) {
-          setLoadError("Your workspace could not be loaded right now.");
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      active = false;
-    };
-  }, [router]);
-
-  if (!ready) {
-    return (
-      <div className="p-6 text-sm text-slate-500">
-        {loadError ?? "Loading dashboard..."}
-      </div>
-    );
-  }
   const verifiedNomineesCount = nominees.filter(n => n.status === "ACTIVE").length;
   const protectedRecordsCount = records.filter(r => !r.softDeleted).length;
   
@@ -102,7 +35,7 @@ export default function DashboardPage() {
         <div className="absolute top-0 right-0 bottom-0 w-1/3 bg-[url('/grid-pattern.svg')] opacity-20 mix-blend-overlay"></div>
         <div className="relative z-10 flex justify-between items-center">
           <div>
-            <p className="text-blue-200 text-sm font-medium">Good Morning, {account?.fullName ? account.fullName.split(" ")[0] : "User"} 👋</p>
+            <p className="text-blue-200 text-sm font-medium">Welcome back 👋</p>
             <h1 className="mt-2 text-[32px] font-bold tracking-tight text-white flex items-center gap-3">
               Your Family Continuity is {isProtected ? "Protected" : "At Risk"}.
               {isProtected ? (

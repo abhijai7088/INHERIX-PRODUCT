@@ -605,7 +605,7 @@ export function RecordsProvider({ children }: { children: React.ReactNode }) {
     void refreshState(setState).catch(() => {
       setState(emptyState());
     });
-  }, [documentCategoryIdBySlug]);
+  }, []);
 
   const createVault = useCallback(async (input: CreateVaultInput) => {
     const response = await backendJsonFetch("/vaults", {

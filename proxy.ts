@@ -92,6 +92,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const isPrefetch = 
+    request.headers.get("x-middleware-prefetch") === "1" || 
+    request.headers.get("next-router-prefetch") === "1" || 
+    request.headers.get("purpose") === "prefetch";
+
+  if (isPrefetch) {
+    return NextResponse.next();
+  }
+
   const session = await resolveBackendSession(request);
   const user = session?.data?.user ?? null;
 

@@ -7,16 +7,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { getRouteAccessDecision, getDashboardRoleLandingPath } from "@/lib/route-access";
 import { getCurrentUser } from "@/lib/trigger-api";
 
-type SessionState =
-  | { status: "loading"; message: string }
-  | { status: "ready" };
-
 export default function DashboardRouteGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [sessionState, setSessionState] = useState<SessionState>({ status: "loading", message: "Checking access..." });
-
-  const loadingMessage = sessionState.status === "loading" ? sessionState.message : null;
+  const [sessionData, setSessionData] = useState<Awaited<ReturnType<typeof getCurrentUser>> | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -24,57 +19,71 @@ export default function DashboardRouteGate({ children }: { children: ReactNode }
     const load = async () => {
       try {
         const me = await getCurrentUser();
+        if (!active) {
+          return;
+        }
+
         if (me.user.mustResetPassword) {
           router.replace("/onboarding/force-reset-password");
           return;
         }
 
-        const decision = getRouteAccessDecision(
-          {
-            data: {
-              user: me.user,
-              permissions: me.permissions ?? [],
-              nextPath: me.nextPath,
-            },
-          },
-          pathname
-        );
-
-        if (!decision.allow) {
-          router.replace(decision.redirectTo ?? getDashboardRoleLandingPath({ data: { user: me.user, permissions: me.permissions ?? [] } }));
-          return;
-        }
-
-        if (pathname === "/dashboard" && me.nextPath && me.nextPath !== "/dashboard") {
-          router.replace(me.nextPath);
-          return;
-        }
-
-        if (active) {
-          setSessionState({ status: "ready" });
-        }
+        setSessionData(me);
       } catch {
-        if (!active) {
-          return;
+        if (active) {
+          router.replace("/onboarding/login");
         }
-
-        router.replace("/onboarding/login");
+      } finally {
+        if (active) {
+          setInitialLoading(false);
+        }
       }
     };
 
-    setSessionState({ status: "loading", message: "Checking access..." });
     void load();
 
     return () => {
       active = false;
     };
-  }, [pathname, router]);
+  }, [router]);
 
-  if (sessionState.status !== "ready") {
+  useEffect(() => {
+    if (initialLoading || !sessionData) {
+      return;
+    }
+
+    const decision = getRouteAccessDecision(
+      {
+        data: {
+          user: sessionData.user,
+          permissions: sessionData.permissions ?? [],
+          nextPath: sessionData.nextPath,
+        },
+      },
+      pathname
+    );
+
+    if (!decision.allow) {
+      router.replace(
+        decision.redirectTo ??
+          getDashboardRoleLandingPath({
+            data: { user: sessionData.user, permissions: sessionData.permissions ?? [] },
+          })
+      );
+      return;
+    }
+
+    if (pathname === "/dashboard" && sessionData.nextPath && sessionData.nextPath !== "/dashboard") {
+      router.replace(sessionData.nextPath);
+      return;
+    }
+  }, [pathname, router, initialLoading, sessionData]);
+
+  if (initialLoading || !sessionData) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-6 py-12">
         <div className="rounded-[28px] border border-[#DCE3EC] bg-white px-6 py-5 text-sm text-slate-500 shadow-sm">
-          {loadingMessage ?? "Checking access..."}
+          Checking access...
         </div>
       </div>
     );

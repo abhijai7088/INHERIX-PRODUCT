@@ -85,13 +85,6 @@ async function resolveBackendSession(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
-  if (process.env.FRONTEND_ORIGIN) {
-    const originUrl = new URL(process.env.FRONTEND_ORIGIN);
-    request.nextUrl.protocol = originUrl.protocol;
-    request.nextUrl.host = originUrl.host;
-    request.nextUrl.port = originUrl.port;
-  }
-
   const { pathname } = request.nextUrl;
   const hasFrontendAccessToken = Boolean(request.cookies.get("inherix_access_token")?.value);
 
@@ -108,8 +101,7 @@ export async function proxy(request: NextRequest) {
 
       if (restrictedRoute) {
         const url = request.nextUrl.clone();
-        url.pathname = "/dashboard";
-        url.search = "";
+        applyRedirect(url, "/dashboard");
         return NextResponse.redirect(url);
       }
 
@@ -143,8 +135,7 @@ export async function proxy(request: NextRequest) {
 
       if (user) {
         const url = request.nextUrl.clone();
-        url.pathname = getAuthenticatedLandingPath(session);
-        url.search = "";
+        applyRedirect(url, getAuthenticatedLandingPath(session));
         return NextResponse.redirect(url);
       }
 
@@ -157,8 +148,7 @@ export async function proxy(request: NextRequest) {
       pathname !== "/onboarding/accept-invitation"
     ) {
       const url = request.nextUrl.clone();
-      url.pathname = getAuthenticatedLandingPath(session);
-      url.search = "";
+      applyRedirect(url, getAuthenticatedLandingPath(session));
       return NextResponse.redirect(url);
     }
 
@@ -167,13 +157,12 @@ export async function proxy(request: NextRequest) {
 
   if (user) {
     const url = request.nextUrl.clone();
-    url.pathname = getAuthenticatedLandingPath(session);
-    url.search = "";
+    applyRedirect(url, getAuthenticatedLandingPath(session));
     return NextResponse.redirect(url);
   }
 
   const url = request.nextUrl.clone();
-  url.pathname = "/onboarding/splash";
+  applyRedirect(url, "/onboarding/splash");
   return NextResponse.redirect(url);
 }
 

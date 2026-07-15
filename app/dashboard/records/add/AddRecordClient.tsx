@@ -28,6 +28,14 @@ import {
 } from "@/lib/records";
 import { useRecordsStore } from "@/components/dashboard/RecordsProvider";
 
+const CATEGORY_TITLE_SUGGESTIONS: Record<RecordCategorySlug, string[]> = {
+  "legal-documents": ["Will Document", "Power of Attorney", "Legal Agreement", "Court Order", "Trust Deed", "Partnership Deed"],
+  "financial-information": ["Bank Reference Letter", "Insurance Policy", "Investment Portfolio", "Tax Returns", "Loan Agreement", "Fixed Deposit Receipt"],
+  "personal-information": ["Aadhaar Card", "Passport Copy", "PAN Card", "Birth Certificate", "Marriage Certificate", "Medical History"],
+  "family-assets": ["Property Deed", "Vehicle Registration", "Gold Holdings Record", "Jewellery Inventory", "Family Home Title", "Land Ownership Document"],
+  "business-records": ["Business Registration", "GST Certificate", "Partnership Agreement", "Board Resolution", "Shareholder Agreement", "Company PAN"],
+};
+
 function parseCategorySlug(value: string | null): RecordCategorySlug | "" {
   const match = recordCategories.find((category) => category.slug === value);
   return match ? match.slug : "";
@@ -300,8 +308,26 @@ export default function AddRecordClient({
                 <Input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Will Document"
+                  placeholder={categorySlug && CATEGORY_TITLE_SUGGESTIONS[categorySlug]?.[0] ? CATEGORY_TITLE_SUGGESTIONS[categorySlug][0] : "Document title"}
                 />
+                {categorySlug && CATEGORY_TITLE_SUGGESTIONS[categorySlug]?.length ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {CATEGORY_TITLE_SUGGESTIONS[categorySlug].map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setTitle(suggestion)}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${
+                          title === suggestion
+                            ? "border-[#163B8C] bg-[#163B8C] text-white"
+                            : "border-[#DCE3EC] bg-[#F8FAFC] text-slate-600 hover:border-[#163B8C] hover:bg-[#EEF4FF] hover:text-[#163B8C]"
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               <div className="space-y-2">

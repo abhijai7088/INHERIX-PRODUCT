@@ -42,7 +42,9 @@ export default function VerificationQueuePage() {
   const [working, setWorking] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFileName, setPreviewFileName] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<"document" | "proof" | null>(null);
+  const [previewLoadError, setPreviewLoadError] = useState(false);
 
   async function loadQueue(preferredRequestId?: string | null) {
     const list = await listTriggerRequests();
@@ -272,7 +274,24 @@ export default function VerificationQueuePage() {
 
     try {
       const result = await getTriggerProofDownload(selectedRequest.request.id, proof.id);
+      const fileName = proof.fileName ?? null;
+
+      // Pre-validate the URL to catch S3 NoSuchKey or storage errors
+      // before the iframe/img tries to render raw XML error responses.
+      let loadError = false;
+      try {
+        const probe = await fetch(result.download.url, { method: "HEAD", mode: "no-cors" });
+        // If the server returns an explicit error status (possible when CORS allows it)
+        if (probe.type !== "opaque" && !probe.ok) {
+          loadError = true;
+        }
+      } catch {
+        // Network failure — let the iframe try and handle via onError
+      }
+
       setPreviewUrl(result.download.url);
+      setPreviewFileName(fileName);
+      setPreviewLoadError(loadError);
       setPreviewType("proof");
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Unable to open the proof.");
@@ -280,7 +299,6 @@ export default function VerificationQueuePage() {
       setWorking(null);
     }
   }
-
 
 
   async function handleRequestMoreInfo() {
@@ -507,34 +525,69 @@ export default function VerificationQueuePage() {
                   </div>
                 )}
               </div>
-              <div className="flex-1 bg-slate-50 relative min-h-[400px] flex items-center justify-center">
-                {selectedProofs[0]?.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                  <img
-                    src={previewUrl}
-                    alt={selectedProofs[0]?.fileName ?? "Document"}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                ) : selectedProofs[0]?.fileName?.match(/\.(pdf)$/i) ? (
-                  <iframe 
-                    src={previewUrl} 
-                    className="absolute inset-0 w-full h-full border-0"
-                    title="Document Preview"
-                  />
-                ) : (
+              <div className="flex-1 bg-slate-50 relative min-h-[300px] flex items-center justify-center overflow-hidden">
+                {previewLoadError ? (
                   <div className="flex flex-col items-center justify-center p-8 text-center">
                     <FileText className="h-16 w-16 text-slate-300 mb-4" />
-                    <p className="text-lg font-medium text-slate-900 mb-2">Preview not available</p>
-                    <p className="text-sm text-slate-500 max-w-sm mb-6">
-                      This file type ({selectedProofs[0]?.fileName?.split('.').pop()?.toUpperCase() ?? 'Unknown'}) cannot be previewed directly in the browser.
+                    <p className="text-base font-semibold text-slate-800 mb-1">File not available for preview</p>
+                    <p className="text-sm text-slate-500 max-w-xs mb-6">
+                      The proof file could not be loaded from storage. It may have been uploaded in a different environment.
                     </p>
-                    <Button asChild>
-                      <a href={previewUrl} download={selectedProofs[0]?.fileName ?? "document"}>
-                        <Download className="mr-2 h-4 w-4" />
+                    <a
+                      href={previewUrl ?? "#"}
+                      download={previewFileName ?? "proof-document"}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#163B8C] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1248B3]"
+                    >
+                      <Download className="h-4 w-4" />
+                      Try downloading directly
+                    </a>
+                  </div>
+                ) : (() => {
+                  const ext = (previewFileName ?? "").split(".").pop()?.toLowerCase() ?? "";
+                  const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext);
+                  const isPdf = ext === "pdf";
+
+                  if (isImage) {
+                    return (
+                      <img
+                        src={previewUrl!}
+                        alt={previewFileName ?? "Proof document"}
+                        className="max-h-full max-w-full object-contain rounded"
+                        onError={() => setPreviewLoadError(true)}
+                      />
+                    );
+                  }
+
+                  if (isPdf) {
+                    return (
+                      <iframe
+                        src={previewUrl!}
+                        className="absolute inset-0 w-full h-full border-0"
+                        title="Proof Document Preview"
+                        onError={() => setPreviewLoadError(true)}
+                      />
+                    );
+                  }
+
+                  // Unknown type — show download card
+                  return (
+                    <div className="flex flex-col items-center justify-center p-8 text-center">
+                      <FileText className="h-16 w-16 text-slate-300 mb-4" />
+                      <p className="text-base font-semibold text-slate-800 mb-2">Preview not available</p>
+                      <p className="text-sm text-slate-500 mb-6">
+                        This file type ({ext.toUpperCase() || "Unknown"}) cannot be previewed in the browser.
+                      </p>
+                      <a
+                        href={previewUrl ?? "#"}
+                        download={previewFileName ?? "proof-document"}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#163B8C] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1248B3]"
+                      >
+                        <Download className="h-4 w-4" />
                         Download to view
                       </a>
-                    </Button>
-                  </div>
-                )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </Card>

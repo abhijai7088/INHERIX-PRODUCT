@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, ChevronUp, X, LogOut, User, Settings } from "lucide-react";
 
 import { getActiveNavigationHref, getNavigationSectionsForRole } from "@/lib/navigation";
 import { getAccountLabel, getInitials, type AccountRole } from "@/lib/account";
 import { getCurrentUser } from "@/lib/trigger-api";
+import { clearAccessToken } from "@/lib/auth-state";
 
 type CurrentUser = Awaited<ReturnType<typeof getCurrentUser>>["user"];
 
@@ -18,19 +19,19 @@ interface Props {
 
 export default function MobileSidebar({ open, setOpen }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [permissions, setPermissions] = useState<string[] | null>(null);
   const [account, setAccount] = useState<CurrentUser | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const role = account?.role as AccountRole | null | undefined;
+
   useEffect(() => {
     let active = true;
 
     const load = async () => {
       try {
         const me = await getCurrentUser();
-        if (!active) {
-          return;
-        }
-
+        if (!active) return;
         setPermissions(me.permissions ?? []);
         setAccount(me.user);
       } catch {
@@ -54,10 +55,7 @@ export default function MobileSidebar({ open, setOpen }: Props) {
         .map((section) => ({
           ...section,
           items: section.items.filter((menu) => {
-            if (!menu.requiredPermission) {
-              return true;
-            }
-
+            if (!menu.requiredPermission) return true;
             return permissions?.includes(menu.requiredPermission) ?? false;
           }),
         }))
@@ -69,6 +67,17 @@ export default function MobileSidebar({ open, setOpen }: Props) {
     () => getActiveNavigationHref(pathname, visibleSections.flatMap((section) => section.items)),
     [pathname, visibleSections]
   );
+
+  async function handleSignOut() {
+    clearAccessToken();
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
+    } catch {
+      // Ignore
+    }
+    router.replace("/onboarding/login");
+  }
+
 
   const renderMenu = (
     items: ReturnType<typeof getNavigationSectionsForRole>[number]["items"]
@@ -89,11 +98,19 @@ export default function MobileSidebar({ open, setOpen }: Props) {
           }`}
         >
           <Icon className="h-4 w-4 shrink-0" />
-
           <span className="truncate">{menu.title}</span>
         </Link>
       );
     });
+
+  const profileHref =
+    role === "CUSTOMER"
+      ? "/dashboard/profile"
+      : role === "ADMIN" || role === "SUPER_ADMIN"
+      ? "/dashboard/admin"
+      : role === "VERIFICATION_OFFICER"
+      ? "/dashboard/emergency/verification"
+      : "/dashboard/released-documents";
 
   return (
     <>
@@ -162,13 +179,16 @@ export default function MobileSidebar({ open, setOpen }: Props) {
           </div>
         </div>
 
+        {/* Profile + Sign-out panel */}
         <div className="shrink-0 border-t border-[#E8EEF5] bg-white p-4">
-          <button className="flex w-full items-center gap-3 rounded-2xl border border-[#DCE3EC] bg-[#FAFBFC] px-3 py-3">
+          <button
+            onClick={() => setProfileOpen((prev) => !prev)}
+            className="flex w-full items-center gap-3 rounded-2xl border border-[#DCE3EC] bg-[#FAFBFC] px-3 py-3 transition hover:bg-[#EEF4FF]"
+          >
             <div className="relative">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#163B8C] text-xs font-semibold text-white">
                 {getInitials(account?.fullName ?? "INHERIX")}
               </div>
-
               <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
             </div>
 
@@ -176,12 +196,47 @@ export default function MobileSidebar({ open, setOpen }: Props) {
               <h3 className="text-[13px] font-semibold text-[#0F172A]">
                 {account?.fullName ?? "Signed-in account"}
               </h3>
-
               <p className="text-[11px] text-slate-500">{getAccountLabel(account?.role)}</p>
             </div>
 
-            <ChevronDown className="h-4 w-4 text-slate-400" />
+            {profileOpen ? (
+              <ChevronUp className="h-4 w-4 text-slate-400" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-slate-400" />
+            )}
           </button>
+
+          {profileOpen && (
+            <div className="mt-2 space-y-1 rounded-2xl border border-[#DCE3EC] bg-white p-2">
+              <Link
+                href={profileHref}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#334155] transition hover:bg-[#EEF4FF] hover:text-[#163B8C]"
+              >
+                <User className="h-4 w-4" />
+                Profile &amp; Settings
+              </Link>
+
+              {role === "CUSTOMER" && (
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#334155] transition hover:bg-[#EEF4FF] hover:text-[#163B8C]"
+                >
+                  <Settings className="h-4 w-4" />
+                  Account Settings
+                </Link>
+              )}
+
+              <button
+                onClick={() => void handleSignOut()}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </>

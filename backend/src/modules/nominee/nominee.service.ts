@@ -207,6 +207,62 @@ export function createNomineeService(
   }
 
   return {
+    async getAllNominees(principal: { user: { id: string; role: UserRole; email: string } }) {
+      assertRole(principal.user.role, ["NOMINEE"], "Only an invited nominee can view this record.");
+
+      const linkedNominees = await store.findAllNomineesByUserId(principal.user.id);
+
+      if (!linkedNominees.length) {
+        return [];
+      }
+
+      const results = await Promise.all(
+        linkedNominees.map(async (nominee) => {
+          const customer = await authStore.findUserById(nominee.customerId);
+          const [rules, documents] = await Promise.all([
+            accessRuleStore.listRules(nominee.customerId, { nomineeId: nominee.id, status: "ACTIVE" }),
+            vaultStore.listDocuments(nominee.customerId),
+          ]);
+
+          const assignedDocuments = rules
+            .map<NomineeAssignedDocumentRecord | null>((rule) => {
+              const document =
+                documents.find((item) => item.id === rule.documentId) ??
+                (rule.categoryId ? documents.find((item) => item.categoryId === rule.categoryId) ?? null : null);
+
+              if (!document) {
+                return null;
+              }
+
+              return {
+                ruleId: rule.id,
+                documentId: document.id,
+                documentTitle: document.documentTitle,
+                fileName: document.originalFileName,
+                fileType: document.fileMimeType,
+                fileSize: document.fileSize,
+                categoryId: document.categoryId,
+                categoryName: document.categoryName,
+                canView: rule.canView,
+                canDownload: rule.canDownload,
+                releaseCondition: rule.releaseCondition,
+                conditionNotes: rule.conditionNotes,
+                documentUpdatedAt: document.updatedAt,
+              };
+            })
+            .filter((item): item is NomineeAssignedDocumentRecord => Boolean(item))
+            .sort((left, right) => left.documentTitle.localeCompare(right.documentTitle));
+
+          return {
+            ...nominee,
+            customerName: customer?.fullName ?? null,
+            assignedDocuments,
+          };
+        })
+      );
+
+      return results;
+    },
     async getCurrentNominee(principal: { user: { id: string; role: UserRole; email: string } }) {
       assertRole(principal.user.role, ["NOMINEE"], "Only an invited nominee can view this record.");
 

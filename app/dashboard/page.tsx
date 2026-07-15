@@ -29,40 +29,40 @@ export default function DashboardPage() {
     : "Never";
 
   return (
-    <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1400px] mx-auto">
       {/* Top Banner */}
-      <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-r from-[#031539] via-[#0A2665] to-[#12429F] p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-r from-[#031539] via-[#0A2665] to-[#12429F] p-5 sm:p-8 text-white shadow-xl">
         <div className="absolute top-0 right-0 bottom-0 w-1/3 bg-[url('/grid-pattern.svg')] opacity-20 mix-blend-overlay"></div>
         <div className="relative z-10 flex justify-between items-center">
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-blue-200 text-sm font-medium">Welcome back 👋</p>
-            <h1 className="mt-2 text-[32px] font-bold tracking-tight text-white flex items-center gap-3">
+            <h1 className="mt-2 text-[24px] sm:text-[32px] font-bold tracking-tight text-white flex items-center gap-3 flex-wrap">
               Your Family Continuity is {isProtected ? "Protected" : "At Risk"}.
               {isProtected ? (
-                <CheckCircle2 className="h-6 w-6 text-emerald-400 fill-emerald-400/20" />
+                <CheckCircle2 className="h-6 w-6 text-emerald-400 fill-emerald-400/20 shrink-0" />
               ) : (
-                <AlertTriangle className="h-6 w-6 text-amber-400 fill-amber-400/20" />
+                <AlertTriangle className="h-6 w-6 text-amber-400 fill-amber-400/20 shrink-0" />
               )}
             </h1>
             <p className="mt-2 text-blue-100 text-sm">Ensure your family can access what matters most, when it matters.</p>
             
-            <div className="mt-8 flex items-center gap-8">
+            <div className="mt-6 grid grid-cols-2 sm:flex sm:flex-row items-center gap-4 sm:gap-8">
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-blue-300" />
+                <Users className="h-5 w-5 text-blue-300 shrink-0" />
                 <div>
                   <p className="text-xl font-bold">{verifiedNomineesCount}</p>
                   <p className="text-xs text-blue-200">Verified Nominees</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-blue-300" />
+                <FileText className="h-5 w-5 text-blue-300 shrink-0" />
                 <div>
                   <p className="text-xl font-bold">{protectedRecordsCount}</p>
                   <p className="text-xs text-blue-200">Protected Records</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <ShieldCheck className={`h-5 w-5 ${isProtected ? 'text-emerald-400' : 'text-amber-400'}`} />
+                <ShieldCheck className={`h-5 w-5 shrink-0 ${isProtected ? 'text-emerald-400' : 'text-amber-400'}`} />
                 <div>
                   <p className={`text-xl font-bold ${isProtected ? 'text-emerald-400' : 'text-amber-400'}`}>{continuityScore}%</p>
                   <p className="text-xs text-blue-200">Continuity Score</p>
@@ -71,7 +71,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 {dashboardStats?.activeRulesCount ? (
                   <>
-                    <Shield className="h-5 w-5 text-emerald-400" />
+                    <Shield className="h-5 w-5 text-emerald-400 shrink-0" />
                     <div>
                       <p className="text-sm font-bold text-emerald-400">Emergency</p>
                       <p className="text-xs text-blue-200">Access Ready</p>
@@ -79,7 +79,7 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    <ShieldAlert className="h-5 w-5 text-amber-400" />
+                    <ShieldAlert className="h-5 w-5 text-amber-400 shrink-0" />
                     <div>
                       <p className="text-sm font-bold text-amber-400">Emergency</p>
                       <p className="text-xs text-blue-200">No Rules Setup</p>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="hidden lg:block relative mr-8">
+          <div className="hidden lg:block relative mr-8 shrink-0">
             <div className="w-[120px] h-[120px] rounded-2xl bg-gradient-to-tr from-blue-400/20 to-blue-200/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.3)]">
               <div className="text-blue-300 transform scale-150 drop-shadow-[0_0_15px_rgba(147,197,253,0.5)]">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -99,11 +99,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
         {/* Main Content Area (Left) */}
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 min-w-0 space-y-4 sm:space-y-6">
           {/* Top 4 Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
             {/* Score */}
             <div className="rounded-[16px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col justify-between">
               <div>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-full lg:w-[280px] shrink-0 space-y-6">
+        <div className="w-full lg:w-[280px] xl:w-[320px] shrink-0 space-y-4 sm:space-y-6">
           
           {/* Security Center */}
           <div className="rounded-[16px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">

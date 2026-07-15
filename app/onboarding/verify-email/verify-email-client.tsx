@@ -50,9 +50,12 @@ export default function VerifyEmailClient({ token, email, nextPath }: { token: s
       }
 
       setLoading(false);
+      // Only carry forward accept-invitation paths; all other verification flows
+      // (including any verification officer link) MUST redirect to the main login page.
       const isInvitationNext = nextPath?.startsWith("/onboarding/accept-invitation");
       const safeNextPath = isInvitationNext ? nextPath : "";
       const nextQuery = safeNextPath ? `?next=${encodeURIComponent(safeNextPath)}` : "";
+      // Always redirect to the main login page after verification
       router.push(`/onboarding/login${nextQuery}`);
     };
 

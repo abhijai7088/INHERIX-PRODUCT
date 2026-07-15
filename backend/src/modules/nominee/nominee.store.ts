@@ -53,6 +53,7 @@ export type NomineeStore = {
   listNominees(customerId: string): Promise<NomineeViewRecord[]>;
   findNomineeById(nomineeId: string): Promise<NomineeViewRecord | null>;
   findNomineeByUserId(nomineeUserId: string): Promise<NomineeViewRecord | null>;
+  findAllNomineesByUserId(nomineeUserId: string): Promise<NomineeViewRecord[]>;
   findNomineeByEmail(customerId: string, email?: string): Promise<NomineeViewRecord | null>;
   findNomineeByInvitationTokenHash(tokenHash: string): Promise<NomineeViewRecord | null>;
   createNominee(
@@ -166,6 +167,38 @@ export function createPostgresNomineeStore(pool: Pool): NomineeStore {
       );
 
       return result.rows[0] ? toNomineeView(result.rows[0]) : null;
+    },
+    async findAllNomineesByUserId(nomineeUserId) {
+      const result = await pool.query(
+        `SELECT
+           n.id,
+           n.customer_id,
+           n.nominee_user_id,
+           n.full_name,
+           n.email,
+           n.mobile,
+           n.relationship,
+           n.custom_relationship,
+           n.notes,
+           n.status,
+           n.verification_status,
+           n.invitation_token_hash,
+           n.invitation_expires_at,
+           n.invited_at,
+           n.accepted_at,
+           n.removed_at,
+           n.created_at,
+           n.updated_at,
+         COUNT(ar.id)::int AS assigned_count
+         FROM nominees n
+         LEFT JOIN document_access_rules ar ON ar.nominee_id = n.id AND ar.is_active = TRUE AND ar.deleted_at IS NULL
+         WHERE n.nominee_user_id = $1 AND n.status = 'ACTIVE'
+         GROUP BY n.id
+         ORDER BY n.updated_at DESC`,
+        [nomineeUserId]
+      );
+
+      return result.rows.map((row: Record<string, unknown>) => toNomineeView(row));
     },
     async findNomineeByEmail(customerIdOrEmail: string, email?: string) {
       const customerId = email ? customerIdOrEmail : null;

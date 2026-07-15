@@ -150,6 +150,12 @@ export async function handleNomineeRequest(
     return;
   }
 
+  if (request.method === "GET" && routePath === "/nominees/me/all") {
+    const nominees = await service.getAllNominees(principal);
+    writeJson(response, 200, buildSuccessResponse("All nominee records retrieved.", { nominees }, context.requestId));
+    return;
+  }
+
   if (request.method === "GET" && routePath === "/nominees/me") {
     const nominee = await service.getCurrentNominee(principal);
     writeJson(response, 200, buildSuccessResponse("Nominee retrieved.", { nominee }, context.requestId));

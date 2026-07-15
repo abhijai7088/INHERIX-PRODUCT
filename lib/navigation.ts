@@ -44,12 +44,12 @@ const customerNavigationSections: NavigationSection[] = [
     title: "",
     items: [
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { title: "My Continuity Plan", href: "/dashboard/activation", icon: Activity },
       { title: "Digital Vault", href: "/dashboard/records", icon: FolderOpen },
       { title: "Nominees & Family", href: "/dashboard/family", icon: Users },
       { title: "Emergency Access", href: "/dashboard/emergency", icon: ShieldCheck },
       { title: "Family Readiness", href: "/dashboard/tasks", icon: CheckSquare },
       { title: "Connections", href: "/dashboard/connections", icon: Link2 },
+      { title: "My Continuity Plan", href: "/dashboard/activation", icon: Activity },
       { title: "Settings", href: "/dashboard/profile", icon: Settings },
     ],
   },

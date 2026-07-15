@@ -98,6 +98,11 @@ export async function loadCurrentNominee() {
   return parseBackendJsonResponse<CurrentNomineeResponse>(response, "The nominee request could not be completed.");
 }
 
+export async function loadAllNominees() {
+  const response = await backendJsonFetch("/nominees/me/all");
+  return parseBackendJsonResponse<{ nominees: NomineeApiRecord[] }>(response, "The nominee request could not be completed.");
+}
+
 export async function createNominee(input: NomineeInviteInput) {
   const response = await backendJsonFetch("/nominees", {
     method: "POST",

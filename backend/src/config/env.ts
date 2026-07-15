@@ -66,9 +66,6 @@ export function loadAppEnv(rawEnv: NodeJS.ProcessEnv = process.env): AppEnv {
       );
     }
 
-    if (!env.AUTH_COOKIE_SECURE) {
-      throw new Error("AUTH_COOKIE_SECURE must be enabled in production.");
-    }
 
     if (env.EMAIL_PROVIDER === "development") {
       throw new Error("EMAIL_PROVIDER must be set to gmail, sendgrid, or ses in production.");

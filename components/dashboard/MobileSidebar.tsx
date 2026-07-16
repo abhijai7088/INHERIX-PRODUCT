@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, X, LogOut, User, Settings } from "lucide-react";
 
@@ -19,7 +19,6 @@ interface Props {
 
 export default function MobileSidebar({ open, setOpen }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const [permissions, setPermissions] = useState<string[] | null>(null);
   const [account, setAccount] = useState<CurrentUser | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -71,11 +70,16 @@ export default function MobileSidebar({ open, setOpen }: Props) {
   async function handleSignOut() {
     clearAccessToken();
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
     } catch {
-      // Ignore
+      // Ignore network errors during logout
     }
-    router.replace("/onboarding/login");
+    // Hard navigation ensures session cookies are cleared before loading login page
+    window.location.assign("/onboarding/login");
   }
 
 

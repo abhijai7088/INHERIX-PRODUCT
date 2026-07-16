@@ -36,6 +36,129 @@ const CATEGORY_TITLE_SUGGESTIONS: Record<RecordCategorySlug, string[]> = {
   "business-records": ["Business Registration", "GST Certificate", "Partnership Agreement", "Board Resolution", "Shareholder Agreement", "Company PAN"],
 };
 
+const CATEGORY_DESCRIPTION_SUGGESTIONS: Record<RecordCategorySlug, Record<string, string[]>> = {
+  "legal-documents": {
+    "Will Document": [
+      "Original signed will document designating estate beneficiaries and asset distribution.",
+      "Notarized will specifying inheritance of property, investments, and personal belongings.",
+      "Last will and testament drafted and witnessed in presence of legal counsel.",
+    ],
+    "Power of Attorney": [
+      "General power of attorney granting authority to act on behalf of the principal.",
+      "Special power of attorney limited to specific financial or legal transactions.",
+      "Durable power of attorney remaining effective even if the principal becomes incapacitated.",
+    ],
+    "Legal Agreement": [
+      "Signed legal agreement outlining obligations, rights, and responsibilities of all parties.",
+      "Binding contract executed between parties with witness and notary confirmation.",
+    ],
+    "Court Order": [
+      "Official court order issued by a competent authority regarding legal proceedings.",
+      "Certified copy of court judgment relevant to family estate or guardianship.",
+    ],
+    "Trust Deed": [
+      "Trust deed establishing a family trust for asset management and continuity.",
+      "Registered trust document specifying trustees, beneficiaries, and governing terms.",
+    ],
+    "Partnership Deed": [
+      "Partnership deed outlining profit sharing, roles, and dissolution terms for the business.",
+      "Registered partnership agreement signed by all partners and notarized.",
+    ],
+    DEFAULT: [
+      "Important legal document stored for continuity and family reference.",
+      "Certified copy of legal instrument relevant to estate planning.",
+    ],
+  },
+  "financial-information": {
+    "Bank Reference Letter": [
+      "Official bank reference letter confirming account details and relationship with the bank.",
+      "Bank letter for credit verification, account confirmation, and financial history.",
+    ],
+    "Insurance Policy": [
+      "Life insurance policy document with policy number, premium details, and nominee information.",
+      "Comprehensive health/term insurance policy covering family members under one plan.",
+      "Insurance policy with maturity benefits and claim procedure for nominees.",
+    ],
+    "Investment Portfolio": [
+      "Consolidated investment statement covering mutual funds, stocks, and bonds.",
+      "Portfolio summary from DEMAT account showing current holdings and market value.",
+    ],
+    "Tax Returns": [
+      "Income tax return (ITR) filed for the financial year with acknowledgment receipt.",
+      "Last 3 years of tax return documents for estate and loan purposes.",
+    ],
+    "Loan Agreement": [
+      "Home/personal loan agreement with repayment schedule and outstanding balance details.",
+      "Signed loan document from bank specifying collateral, tenure, and interest rate.",
+    ],
+    DEFAULT: [
+      "Financial document securely stored for family continuity and estate access.",
+      "Important financial record with account, policy, or investment details.",
+    ],
+  },
+  "personal-information": {
+    "Aadhaar Card": [
+      "Original Aadhaar card copy with UID number for identity verification purposes.",
+      "Masked Aadhaar copy with last 4 digits visible, suitable for KYC submission.",
+    ],
+    "Passport Copy": [
+      "Valid passport copy with photo page and address page scanned for records.",
+      "Passport document stored for international travel, visa, and identity purposes.",
+    ],
+    "PAN Card": [
+      "PAN card copy for income tax, investment, and financial transaction identification.",
+      "Permanent Account Number card issued by the Income Tax Department of India.",
+    ],
+    "Birth Certificate": [
+      "Official birth certificate issued by municipal corporation, required for legal and school purposes.",
+      "Government-issued birth record confirming date, place, and details of birth.",
+    ],
+    "Marriage Certificate": [
+      "Registered marriage certificate issued by the court or municipality.",
+      "Marriage registration document confirming legal union for joint asset and nomination purposes.",
+    ],
+    DEFAULT: [
+      "Personal identification document stored securely for family continuity.",
+      "Government-issued identity document required for KYC and estate planning.",
+    ],
+  },
+  "family-assets": {
+    "Property Deed": [
+      "Registered sale deed or title deed of the property with stamp duty endorsement.",
+      "Property document showing ownership, survey number, and encumbrance certificate.",
+    ],
+    "Vehicle Registration": [
+      "RC (Registration Certificate) of vehicle with insurance and fitness certificate.",
+      "Vehicle ownership document from RTO including chassis and engine number.",
+    ],
+    "Gold Holdings Record": [
+      "Jeweller certificate and gold holdings statement for valuation and estate planning.",
+      "Record of gold coins, bars, or ornaments with weight, purity, and purchase details.",
+    ],
+    DEFAULT: [
+      "Family asset document stored for succession planning and estate continuity.",
+      "Ownership record for physical or movable asset held in the family name.",
+    ],
+  },
+  "business-records": {
+    "Business Registration": [
+      "Certificate of incorporation or firm registration from the relevant authority.",
+      "Business registration document from ROC/municipal body confirming legal entity status.",
+    ],
+    "GST Certificate": [
+      "GST registration certificate with GSTIN for business compliance and billing purposes.",
+      "Goods and Services Tax certificate issued by the tax authority.",
+    ],
+    "Partnership Agreement": [
+      "Registered partnership deed outlining roles, capital contribution, and profit sharing.",
+    ],
+    DEFAULT: [
+      "Business document stored for corporate continuity and succession planning.",
+      "Company registration or compliance record for family business estate purposes.",
+    ],
+  },
+};
+
 function parseCategorySlug(value: string | null): RecordCategorySlug | "" {
   const match = recordCategories.find((category) => category.slug === value);
   return match ? match.slug : "";
@@ -338,6 +461,34 @@ export default function AddRecordClient({
                   placeholder="Summarize what the record contains and why it matters."
                   rows={4}
                 />
+                {(() => {
+                  if (!categorySlug) return null;
+                  const catSuggestions = CATEGORY_DESCRIPTION_SUGGESTIONS[categorySlug];
+                  if (!catSuggestions) return null;
+                  const suggestions = (title && catSuggestions[title]) ? catSuggestions[title] : catSuggestions["DEFAULT"] ?? [];
+                  if (!suggestions.length) return null;
+                  return (
+                    <div className="space-y-1.5 pt-1">
+                      <p className="text-xs font-medium text-slate-400">Quick suggestions — click to use:</p>
+                      <div className="flex flex-col gap-1.5">
+                        {suggestions.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => setDescription(suggestion)}
+                            className={`rounded-2xl border px-3 py-2 text-xs text-left font-medium transition-all ${
+                              description === suggestion
+                                ? "border-[#163B8C] bg-[#163B8C] text-white"
+                                : "border-[#DCE3EC] bg-[#F8FAFC] text-slate-600 hover:border-[#163B8C] hover:bg-[#EEF4FF] hover:text-[#163B8C]"
+                            }`}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="rounded-[28px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-6">

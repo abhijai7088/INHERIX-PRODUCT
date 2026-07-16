@@ -1,8 +1,8 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState, useTransition } from "react";
-import { BadgeCheck, Building2, Mail, Phone, RefreshCw, UserRound } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { BadgeCheck, Building2, Camera, Mail, Phone, RefreshCw, UserRound } from "lucide-react";
 
 import { Badge } from "@/components/inherix/badge";
 import { Button } from "@/components/inherix/button";
@@ -12,7 +12,7 @@ import { Notice } from "@/components/inherix/notice";
 import { PageHeader } from "@/components/inherix/page-header";
 import { SectionHeader } from "@/components/inherix/section-header";
 import { FieldHint, FieldLabel, FormField } from "@/components/inherix/field";
-import { getAccountLabel } from "@/lib/account";
+import { getAccountLabel, getInitials } from "@/lib/account";
 import { formatDateTime } from "@/lib/records";
 
 import { useProfile } from "@/hooks/use-profile";
@@ -26,6 +26,9 @@ export default function AccountProfilePage() {
   const [mobile, setMobile] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!account) {
@@ -34,6 +37,13 @@ export default function AccountProfilePage() {
 
     setFullName(account.fullName);
     setMobile(account.mobile ?? "");
+
+    // Load stored profile image from localStorage
+    const storageKey = `inherix_profile_photo_${account.id}`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      setProfileImage(stored);
+    }
   }, [account]);
 
   const hasChanges = useMemo(() => {
@@ -80,6 +90,35 @@ export default function AccountProfilePage() {
         setFormError(caught instanceof Error ? caught.message : "Unable to update account details.");
       }
     });
+  }
+
+  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setFormError("Profile photo must be 5 MB or smaller.");
+      return;
+    }
+
+    setImageUploading(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setProfileImage(dataUrl);
+      if (account?.id) {
+        localStorage.setItem(`inherix_profile_photo_${account.id}`, dataUrl);
+      }
+      setImageUploading(false);
+      setMessage("Profile photo updated successfully.");
+    };
+    reader.onerror = () => {
+      setFormError("Unable to read the selected image.");
+      setImageUploading(false);
+    };
+    reader.readAsDataURL(file);
+    // Reset input so same file can be re-selected
+    event.target.value = "";
   }
 
   return (

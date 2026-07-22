@@ -15,7 +15,12 @@ import { listReleasedDocuments, requestReleasedDocumentAccess, type ReleaseRecor
 import { loadCurrentNominee, type NomineeApiRecord } from "@/lib/nominees";
 
 function isActiveNomineeRequest(status: TriggerEligibleDocument["requestStatus"]) {
-  return status === "PENDING" || status === "UNDER_REVIEW" || status === "ADDITIONAL_INFO_REQUIRED";
+  return (
+    status === "PENDING" ||
+    status === "UNDER_REVIEW" ||
+    status === "ADDITIONAL_INFO_REQUIRED" ||
+    status === "PENDING_SUPER_ADMIN_APPROVAL"
+  );
 }
 
 function isApprovedNomineeRequest(document: TriggerEligibleDocument) {
@@ -28,6 +33,14 @@ function getNomineeDocumentAction(document: TriggerEligibleDocument) {
       label: "Open approved access",
       href: "/dashboard/released-documents#released-documents",
       helperText: "Jump to the approved documents section and open the controlled access record.",
+    };
+  }
+
+  if (document.requestStatus === "PENDING_SUPER_ADMIN_APPROVAL") {
+    return {
+      label: "Awaiting final approval",
+      href: `/dashboard/released-documents/request?requestId=${document.requestId ? encodeURIComponent(document.requestId) : ""}`,
+      helperText: "Your proof has been verified by the officer. A Super Admin is reviewing for final release — no action needed from you.",
     };
   }
 
@@ -153,6 +166,10 @@ export default function ReleasedDocumentsPage() {
 
       if (linkedNomineeRequest.requestStatus === "ADDITIONAL_INFO_REQUIRED") {
         return "Additional proof needed";
+      }
+
+      if (linkedNomineeRequest.requestStatus === "PENDING_SUPER_ADMIN_APPROVAL") {
+        return "Awaiting Super Admin approval";
       }
 
       if (linkedNomineeRequest.requestStatus === "APPROVED") {
@@ -471,9 +488,11 @@ export default function ReleasedDocumentsPage() {
                             variant={
                               isApprovedNomineeRequest(document)
                                 ? "success"
-                                : isActiveNomineeRequest(document.requestStatus)
+                                : document.requestStatus === "PENDING_SUPER_ADMIN_APPROVAL"
                                   ? "warning"
-                                  : "secondary"
+                                  : isActiveNomineeRequest(document.requestStatus)
+                                    ? "warning"
+                                    : "secondary"
                             }
                           >
                             {document.requestStatus ? document.requestStatus.replaceAll("_", " ").toLowerCase() : "Request ready"}

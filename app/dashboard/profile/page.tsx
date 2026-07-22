@@ -18,6 +18,7 @@ import { Notice } from "@/components/inherix/notice";
 import { PageHeader } from "@/components/inherix/page-header";
 import { SectionHeader } from "@/components/inherix/section-header";
 import { formatDateTime } from "@/lib/records";
+import { getAccountLabel } from "@/lib/account";
 
 import { getVisibleProfileNavItems } from "./profile-center";
 import { useProfile } from "@/hooks/use-profile";
@@ -77,8 +78,8 @@ export default function ProfileHubPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="border-[#E5ECF5] bg-white">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
+        <Card className="border-[#E5ECF5] bg-white min-w-0">
           <CardContent className="space-y-2 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Visible sections</p>
             <p className="text-3xl font-semibold text-[#0F172A]">{profile?.sections?.filter((section) => section.visible).length ?? 0}</p>
@@ -86,7 +87,7 @@ export default function ProfileHubPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#E5ECF5] bg-white">
+        <Card className="border-[#E5ECF5] bg-white min-w-0">
           <CardContent className="space-y-2 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Active sessions</p>
             <p className="text-3xl font-semibold text-[#0F172A]">{profile?.security?.activeSessionCount ?? 0}</p>
@@ -94,7 +95,7 @@ export default function ProfileHubPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#E5ECF5] bg-white">
+        <Card className="border-[#E5ECF5] bg-white min-w-0">
           <CardContent className="space-y-2 p-5">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Unread notifications</p>
             <p className="text-3xl font-semibold text-[#0F172A]">{profile?.notifications?.unreadCount ?? 0}</p>
@@ -102,17 +103,17 @@ export default function ProfileHubPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#E5ECF5] bg-white">
-          <CardContent className="space-y-2 p-5">
+        <Card className="border-[#E5ECF5] bg-white min-w-0">
+          <CardContent className="space-y-2 p-5 min-w-0 overflow-hidden">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Role</p>
-            <p className="text-2xl font-semibold text-[#0F172A]">{account?.role ?? "Loading"}</p>
+            <p className="text-2xl font-semibold text-[#0F172A] truncate" title={account ? getAccountLabel(account.role) : undefined}>{account ? getAccountLabel(account.role) : "Loading"}</p>
             <p className="text-sm leading-6 text-slate-500">Role-scoped access and controls.</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)]">
-        <CardContent className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <CardContent className="grid gap-6 2xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-5">
             <SectionHeader
               title="Profile sections"
@@ -184,7 +185,7 @@ export default function ProfileHubPage() {
                 <div className="flex flex-wrap gap-2">
                   {profile?.security?.mfaEnabled ? <Badge variant="success">MFA enabled</Badge> : <Badge variant="warning">MFA disabled</Badge>}
                   <Badge variant={account?.status === "ACTIVE" ? "success" : "secondary"}>{account?.status ?? "Loading"}</Badge>
-                  <Badge variant="default">{account ? account.role : "Loading"}</Badge>
+                  <Badge variant="default">{account ? getAccountLabel(account.role) : "Loading"}</Badge>
                 </div>
               </CardContent>
             </Card>

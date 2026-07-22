@@ -334,7 +334,7 @@ export default function VerificationQueuePage() {
       await approveTriggerRequest(selectedRequest.request.id, remarks || null);
       await refreshSelected(selectedRequest.request.id);
       setRemarks("");
-      setMessage("Request successfully approved! The document has been released to the nominee.");
+      setMessage("Proof verified and sent for Super Admin final approval. The nominee will gain access once the Super Admin approves.");
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Unable to approve the trigger request.");
     } finally {
@@ -922,7 +922,7 @@ export default function VerificationQueuePage() {
                 Request more info
               </Button>
               <Button type="button" variant="outline" onClick={() => void handleApprove()} disabled={working !== null || !canApproveSelectedRequest}>
-                Approve request
+                Send for Super Admin Approval
               </Button>
               <Button type="button" variant="destructive" onClick={() => void handleReject()} disabled={working !== null || !canActOnSelectedRequest}>
                 Reject request
@@ -937,6 +937,11 @@ export default function VerificationQueuePage() {
                 Approval creates or refreshes the controlled release for the exact linked document using the customer rule.
               </p>
             )}
+            {selectedRequest?.request.status === "PENDING_SUPER_ADMIN_APPROVAL" ? (
+              <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <strong>Awaiting Super Admin final approval.</strong> This request has been verified by the officer and is now in the Super Admin queue. No further action is needed from the verification desk.
+              </div>
+            ) : null}
             {selectedRequest?.request.status === "APPROVED" ? (
               <div className="rounded-[22px] border border-[#C7D2FE] bg-white p-4">
                 <p className="text-sm font-semibold text-[#0F172A]">Approved case has controlled release</p>

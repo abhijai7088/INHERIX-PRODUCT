@@ -15,6 +15,7 @@ export type TriggerRequestStatus =
   | "PENDING"
   | "UNDER_REVIEW"
   | "ADDITIONAL_INFO_REQUIRED"
+  | "PENDING_SUPER_ADMIN_APPROVAL"
   | "APPROVED"
   | "REJECTED"
   | "CANCELLED";
@@ -155,6 +156,7 @@ export const triggerRequestStatusLabels: Record<TriggerRequestStatus, string> = 
   PENDING: "Pending",
   UNDER_REVIEW: "Under review",
   ADDITIONAL_INFO_REQUIRED: "Additional info required",
+  PENDING_SUPER_ADMIN_APPROVAL: "Awaiting final approval",
   APPROVED: "Approved",
   REJECTED: "Rejected",
   CANCELLED: "Cancelled",
@@ -172,6 +174,10 @@ export function getTriggerStatusTone(status: TriggerRequestStatus) {
   }
 
   if (status === "PENDING" || status === "UNDER_REVIEW" || status === "ADDITIONAL_INFO_REQUIRED") {
+    return "warning" as const;
+  }
+
+  if (status === "PENDING_SUPER_ADMIN_APPROVAL") {
     return "warning" as const;
   }
 

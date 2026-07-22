@@ -1,5 +1,7 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { ShareAppButton } from "@/components/inherix/share-button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -123,6 +125,9 @@ export default function Sidebar() {
         <p className="mt-4 text-[11px] font-medium text-[#163B8C] opacity-60">
           Your Family. Your Legacy. Our Protection.
         </p>
+        <div className="mt-4">
+          <ShareAppButton variant="ghost" className="w-full justify-start text-xs h-9 bg-[#F8FBFF] hover:bg-[#EEF4FF]" text="Share INHERIX" />
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-4">
 

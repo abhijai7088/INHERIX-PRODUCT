@@ -436,7 +436,56 @@ export async function handleTriggerRequest(
     return;
   }
 
+  if (request.method === "GET" && routePath === "/trigger-requests/super-admin/queue") {
+    const requests = await service.listSuperAdminApprovalQueue(principal);
+    writeJson(response, 200, buildSuccessResponse("Super Admin approval queue retrieved.", { requests }, context.requestId));
+    return;
+  }
+
+  if (request.method === "POST" && routePath.startsWith("/trigger-requests/") && routePath.endsWith("/sa-approve")) {
+    const requestId = routePath.slice("/trigger-requests/".length, -"/sa-approve".length);
+    if (!requestId) {
+      throw new HttpError(404, "NOT_FOUND", "Route not found.");
+    }
+
+    const body = parseReviewBody((await readJsonBody(request, context.env.REQUEST_BODY_LIMIT)) as Record<string, unknown>);
+    const result = await service.superAdminApproveTriggerRequest(principal, requestId, { adminRemarks: body.adminRemarks }, requestContext);
+    writeJson(response, 200, buildSuccessResponse("Trigger request approved by Super Admin.", result, context.requestId));
+    return;
+  }
+
+  if (request.method === "POST" && routePath.startsWith("/trigger-requests/") && routePath.endsWith("/sa-reject")) {
+    const requestId = routePath.slice("/trigger-requests/".length, -"/sa-reject".length);
+    if (!requestId) {
+      throw new HttpError(404, "NOT_FOUND", "Route not found.");
+    }
+
+    const body = parseReviewBody((await readJsonBody(request, context.env.REQUEST_BODY_LIMIT)) as Record<string, unknown>);
+    const result = await service.superAdminRejectTriggerRequest(principal, requestId, { adminRemarks: body.adminRemarks }, requestContext);
+    writeJson(response, 200, buildSuccessResponse("Trigger request rejected by Super Admin.", result, context.requestId));
+    return;
+  }
+
+  if (request.method === "POST" && routePath.startsWith("/trigger-requests/") && routePath.endsWith("/nudge")) {
+    const requestId = routePath.slice("/trigger-requests/".length, -"/nudge".length);
+    if (!requestId) {
+      throw new HttpError(404, "NOT_FOUND", "Route not found.");
+    }
+
+    const body = (await readJsonBody(request, context.env.REQUEST_BODY_LIMIT)) as Record<string, unknown>;
+    const targetUserIds = Array.isArray(body.targetUserIds) ? (body.targetUserIds as string[]) : [];
+    const nudgeMessage = typeof body.message === "string" ? body.message.trim() : "";
+    if (!targetUserIds.length) {
+      throw new HttpError(400, "VALIDATION_ERROR", "targetUserIds must be a non-empty array.");
+    }
+
+    await service.sendNudgeNotification(principal, requestId, { targetUserIds, message: nudgeMessage }, requestContext);
+    writeJson(response, 200, buildSuccessResponse("Nudge notification sent.", {}, context.requestId));
+    return;
+  }
+
   if (request.method === "GET" && routePath.startsWith("/trigger-requests/")) {
+
     const requestId = routePath.slice("/trigger-requests/".length);
     if (!requestId || requestId.includes("/")) {
       throw new HttpError(404, "NOT_FOUND", "Route not found.");

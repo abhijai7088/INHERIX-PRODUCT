@@ -72,6 +72,7 @@ function isStatus(value: string): value is TriggerRequestStatus {
     "PENDING",
     "UNDER_REVIEW",
     "ADDITIONAL_INFO_REQUIRED",
+    "PENDING_SUPER_ADMIN_APPROVAL",
     "APPROVED",
     "REJECTED",
     "CANCELLED",
@@ -787,7 +788,7 @@ function releaseSnapshot(release: {
   }
 
   function isOpenRequestStatus(status: TriggerRequestStatus) {
-    return status === "DRAFT" || status === "PENDING" || status === "UNDER_REVIEW" || status === "ADDITIONAL_INFO_REQUIRED";
+    return status === "DRAFT" || status === "PENDING" || status === "UNDER_REVIEW" || status === "ADDITIONAL_INFO_REQUIRED" || status === "PENDING_SUPER_ADMIN_APPROVAL";
   }
 
   function requestSnapshot(request: TriggerRequestRecord) {
@@ -1357,13 +1358,69 @@ function releaseSnapshot(release: {
         throw new HttpError(409, "TRIGGER_REQUEST_NOT_READY", "At least one verified proof is required before approval.");
       }
 
-      const approved = await finalizeApprovedDocumentAccessRequest(
-        principal,
-        request,
-        context,
+      // VO / Admin: transitions to PENDING_SUPER_ADMIN_APPROVAL (not directly APPROVED)
+      const updated = await store.updateRequestReview(
+        request.id,
+        "PENDING_SUPER_ADMIN_APPROVAL",
+        principal.user.id,
+        toTriggerActorRole(principal.user.role),
         input.adminRemarks?.trim() ?? null
       );
-      return enrichRequest(approved.request);
+      if (!updated) {
+        throw new HttpError(500, "TRIGGER_REQUEST_UPDATE_FAILED", "Trigger request status could not be updated.");
+      }
+
+      await logSensitiveAction(
+        principal,
+        "TRIGGER_REQUEST_SENT_FOR_SA_APPROVAL",
+        "trigger_request",
+        updated.id,
+        requestSnapshot(updated),
+        requestSnapshot(request),
+        context,
+        "MEDIUM"
+      );
+
+      // Notify all Super Admin users
+      const saUserIds = await store.findSuperAdminUserIds();
+      await Promise.all(
+        saUserIds.map((saUserId) =>
+          store.createNotification({
+            userId: saUserId,
+            title: "Action required: Final approval needed",
+            message: `${updated.subjectLine} has been verified by the officer. Please review and provide final approval.`,
+            channel: "IN_APP",
+            status: "SENT",
+            metadata: buildNotificationMetadata({
+              category: "workflow",
+              priority: "high",
+              source: "Verification desk",
+              actionLabel: "Review and approve",
+              requestId: updated.id,
+              requestKind: updated.requestKind,
+            }),
+          })
+        )
+      );
+
+      // Notify customer
+      await store.createNotification({
+        userId: request.customerId,
+        title: "Verification officer approved",
+        message: `${updated.subjectLine} passed officer verification. Awaiting Super Admin final approval.`,
+        channel: "IN_APP",
+        status: "SENT",
+        metadata: buildNotificationMetadata({
+          category: "workflow",
+          priority: "high",
+          source: "Verification desk",
+          actionLabel: "Track request",
+          requestId: updated.id,
+          requestKind: updated.requestKind,
+        }),
+      });
+
+      return enrichRequest(updated);
     },
     async rejectTriggerRequest(
       principal: TriggerPrincipal,
@@ -1411,6 +1468,162 @@ function releaseSnapshot(release: {
       });
 
       return enrichRequest(updated);
+    },
+    async superAdminApproveTriggerRequest(
+      principal: TriggerPrincipal,
+      requestId: string,
+      input: { adminRemarks?: string | null },
+      context: AuthRequestContext
+    ) {
+      if (principal.user.role !== "SUPER_ADMIN") {
+        throw new HttpError(403, "FORBIDDEN", "Only Super Admins can perform final approval.");
+      }
+
+      const request = await store.findRequestById(requestId);
+      if (!request) {
+        throw new HttpError(404, "TRIGGER_REQUEST_NOT_FOUND", "Trigger request not found.");
+      }
+
+      if (request.status !== "PENDING_SUPER_ADMIN_APPROVAL") {
+        throw new HttpError(409, "TRIGGER_REQUEST_NOT_IN_SA_QUEUE", "This request is not awaiting Super Admin approval.");
+      }
+
+      const updated = await store.updateRequestSuperAdminDecision(
+        request.id,
+        "APPROVED",
+        principal.user.id,
+        toTriggerActorRole(principal.user.role),
+        input.adminRemarks?.trim() ?? null
+      );
+      if (!updated) {
+        throw new HttpError(500, "TRIGGER_REQUEST_UPDATE_FAILED", "Trigger request status could not be updated.");
+      }
+
+      await logSensitiveAction(
+        principal,
+        "TRIGGER_REQUEST_SUPER_ADMIN_APPROVED",
+        "trigger_request",
+        updated.id,
+        requestSnapshot(updated),
+        requestSnapshot(request),
+        context,
+        "HIGH"
+      );
+
+      const release = await createOrRefreshDocumentAccessRelease(principal, updated, context, input.adminRemarks?.trim() ?? null);
+
+      await notifyRequestParticipants(updated, {
+        title: "Request fully approved",
+        message: `${updated.subjectLine} has been approved by the Super Admin. Documents are now accessible.`,
+        category: "release",
+        priority: "high",
+        actionLabel: "Open release center",
+        source: "Super Admin",
+      });
+
+      return { request: await enrichRequest(updated), release };
+    },
+    async superAdminRejectTriggerRequest(
+      principal: TriggerPrincipal,
+      requestId: string,
+      input: { adminRemarks?: string | null },
+      context: AuthRequestContext
+    ) {
+      if (principal.user.role !== "SUPER_ADMIN") {
+        throw new HttpError(403, "FORBIDDEN", "Only Super Admins can reject at the final stage.");
+      }
+
+      const request = await store.findRequestById(requestId);
+      if (!request) {
+        throw new HttpError(404, "TRIGGER_REQUEST_NOT_FOUND", "Trigger request not found.");
+      }
+
+      if (request.status !== "PENDING_SUPER_ADMIN_APPROVAL") {
+        throw new HttpError(409, "TRIGGER_REQUEST_NOT_IN_SA_QUEUE", "This request is not awaiting Super Admin approval.");
+      }
+
+      const updated = await store.updateRequestSuperAdminDecision(
+        request.id,
+        "REJECTED",
+        principal.user.id,
+        toTriggerActorRole(principal.user.role),
+        input.adminRemarks?.trim() ?? null
+      );
+      if (!updated) {
+        throw new HttpError(500, "TRIGGER_REQUEST_UPDATE_FAILED", "Trigger request status could not be updated.");
+      }
+
+      await logSensitiveAction(
+        principal,
+        "TRIGGER_REQUEST_SUPER_ADMIN_REJECTED",
+        "trigger_request",
+        updated.id,
+        requestSnapshot(updated),
+        requestSnapshot(request),
+        context,
+        "HIGH"
+      );
+
+      await notifyRequestParticipants(updated, {
+        title: "Request rejected by Super Admin",
+        message: `${updated.subjectLine} was rejected during final review. Documents remain inaccessible.`,
+        category: "workflow",
+        priority: "high",
+        actionLabel: "Review decision",
+        source: "Super Admin",
+      });
+
+      return enrichRequest(updated);
+    },
+    async listSuperAdminApprovalQueue(principal: TriggerPrincipal) {
+      if (principal.user.role !== "SUPER_ADMIN") {
+        throw new HttpError(403, "FORBIDDEN", "Only Super Admins can access the approval queue.");
+      }
+      return store.listRequestsForSuperAdminQueue();
+    },
+    async sendNudgeNotification(
+      principal: TriggerPrincipal,
+      requestId: string,
+      input: { targetUserIds: string[]; message: string },
+      context: AuthRequestContext
+    ) {
+      const request = await store.findRequestById(requestId);
+      if (!request) {
+        throw new HttpError(404, "TRIGGER_REQUEST_NOT_FOUND", "Trigger request not found.");
+      }
+
+      ensureDecisionRole(principal);
+
+      await Promise.all(
+        input.targetUserIds.map((userId) =>
+          store.createNotification({
+            userId,
+            title: "Urgent review requested",
+            message: input.message || `${request.subjectLine} requires your urgent attention.`,
+            channel: "IN_APP",
+            status: "SENT",
+            metadata: buildNotificationMetadata({
+              category: "workflow",
+              priority: "high",
+              source: "Verification desk",
+              actionLabel: "Review now",
+              requestId: request.id,
+              requestKind: request.requestKind,
+            }),
+          })
+        )
+      );
+
+      await logSensitiveAction(
+        principal,
+        "TRIGGER_NUDGE_SENT",
+        "trigger_request",
+        requestId,
+        { targetUserIds: input.targetUserIds, message: input.message },
+        null,
+        context,
+        "LOW"
+      );
     },
     async getTriggerRequestTimeline(principal: TriggerPrincipal, requestId: string): Promise<TriggerTimelineEntry[]> {
       const request = await store.findRequestById(requestId);

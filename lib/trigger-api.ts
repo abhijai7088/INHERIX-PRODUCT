@@ -10,6 +10,7 @@ export type TriggerRequestStatus =
   | "PENDING"
   | "UNDER_REVIEW"
   | "ADDITIONAL_INFO_REQUIRED"
+  | "PENDING_SUPER_ADMIN_APPROVAL"
   | "APPROVED"
   | "REJECTED"
   | "CANCELLED";
@@ -330,6 +331,53 @@ export async function rejectTriggerRequest(requestId: string, adminRemarks?: str
   });
 
   return parseBackendJsonResponse<{ request: TriggerRequestWithRelations }>(
+    response,
+    "The backend request could not be completed."
+  );
+}
+
+export async function superAdminApproveTriggerRequest(requestId: string, adminRemarks?: string | null) {
+  const response = await backendJsonFetch(`/trigger-requests/${encodeURIComponent(requestId)}/sa-approve`, {
+    method: "POST",
+    body: JSON.stringify({ adminRemarks: adminRemarks ?? null }),
+  });
+
+  return parseBackendJsonResponse<{ request: TriggerRequestWithRelations }>(
+    response,
+    "The backend request could not be completed."
+  );
+}
+
+export async function superAdminRejectTriggerRequest(requestId: string, adminRemarks?: string | null) {
+  const response = await backendJsonFetch(`/trigger-requests/${encodeURIComponent(requestId)}/sa-reject`, {
+    method: "POST",
+    body: JSON.stringify({ adminRemarks: adminRemarks ?? null }),
+  });
+
+  return parseBackendJsonResponse<{ request: TriggerRequestWithRelations }>(
+    response,
+    "The backend request could not be completed."
+  );
+}
+
+export async function listSuperAdminApprovalQueue() {
+  const response = await backendJsonFetch("/trigger-requests/super-admin/queue", {
+    method: "GET",
+  });
+
+  return parseBackendJsonResponse<{ requests: TriggerRequestWithRelations[] }>(
+    response,
+    "The backend request could not be completed."
+  );
+}
+
+export async function sendTriggerNudge(requestId: string, targetUserIds: string[], message?: string) {
+  const response = await backendJsonFetch(`/trigger-requests/${encodeURIComponent(requestId)}/nudge`, {
+    method: "POST",
+    body: JSON.stringify({ targetUserIds, message: message ?? "" }),
+  });
+
+  return parseBackendJsonResponse<Record<string, never>>(
     response,
     "The backend request could not be completed."
   );

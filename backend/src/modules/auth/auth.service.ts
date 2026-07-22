@@ -62,7 +62,7 @@ const forgotPasswordRateLimitWindowMs = 60 * 60 * 1000;
 const refreshRateLimitWindowMs = 15 * 60 * 1000;
 const mfaChallengeWindowMs = 10 * 60 * 1000;
 const browserSessionCookieName = "inherix_browser_session";
-const privilegedRoles = new Set<PublicUser["role"]>(["VERIFICATION_OFFICER", "ADMIN", "SUPER_ADMIN", "CUSTOMER"]);
+const privilegedRoles = new Set<PublicUser["role"]>(["VERIFICATION_OFFICER", "ADMIN", "SUPER_ADMIN", "CUSTOMER", "NOMINEE"]);
 
 type TokenPayload = {
   sub?: string;

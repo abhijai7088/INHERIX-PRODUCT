@@ -9,6 +9,7 @@ export type TriggerRequestStatus =
   | "PENDING"
   | "UNDER_REVIEW"
   | "ADDITIONAL_INFO_REQUIRED"
+  | "PENDING_SUPER_ADMIN_APPROVAL"
   | "APPROVED"
   | "REJECTED"
   | "CANCELLED";
@@ -58,6 +59,8 @@ export type TriggerRequestRecord = {
   additionalInfoRequestedAt: string | null;
   additionalInfoReason: string | null;
   adminDecisionNote: string | null;
+  superAdminDecisionNote: string | null;
+  superAdminReviewedAt: string | null;
   latestActivityAt: string;
   createdAt: string;
   updatedAt: string;

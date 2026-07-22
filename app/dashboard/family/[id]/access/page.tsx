@@ -42,16 +42,6 @@ const releaseConditions = [
   { value: "OTHER", label: "Other" },
 ] as const;
 
-const CONDITION_NOTES_SUGGESTIONS: Record<string, string[]> = {
-  DEATH_EVENT: ["Death certificate required", "Requires verification from family lawyer"],
-  MEDICAL_INCAPACITY: ["Provide letter from treating physician", "Hospital admission records required"],
-  LEGAL_EVENT: ["Court order required", "Power of attorney activation required"],
-  EMERGENCY_ACCESS: ["Severe accident or disaster", "Life-threatening emergency only"],
-  OWNER_INACTIVE: ["No login activity for 90 days", "Unreachable by phone for 30 days"],
-  OTHER: ["Requires my direct written consent", "For educational use only"],
-};
-
-
 function getScopeLabel(rule: AccessRuleRecord) {
   if (rule.scopeType === "DOCUMENT") {
     return rule.documentTitle ?? "Document scope";
@@ -413,26 +403,7 @@ export default function NomineeAccessRulesPage() {
                   onChange={(event) => setConditionNotes(event.target.value)}
                   placeholder="Optional internal notes"
                 />
-                {CONDITION_NOTES_SUGGESTIONS[releaseCondition] && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {CONDITION_NOTES_SUGGESTIONS[releaseCondition].map((suggestion) => (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onClick={() => setConditionNotes(suggestion)}
-                        className={`rounded-full border px-3 py-1 text-[11px] font-medium transition ${
-                          conditionNotes === suggestion
-                            ? "border-[#163B8C] bg-[#EEF4FF] text-[#163B8C]"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-[#163B8C] hover:text-[#163B8C]"
-                        }`}
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </label>
-
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">

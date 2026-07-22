@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, X, LogOut, User, Settings } from "lucide-react";
+import { ShareAppButton } from "@/components/inherix/share-button";
 
 import { getActiveNavigationHref, getNavigationSectionsForRole } from "@/lib/navigation";
 import { getAccountLabel, getInitials, type AccountRole } from "@/lib/account";
@@ -158,6 +159,10 @@ export default function MobileSidebar({ open, setOpen }: Props) {
               <p className="text-[11px] font-medium text-slate-500">
                 Digital Continuity Institution
               </p>
+              
+              <div className="mt-3">
+                <ShareAppButton variant="ghost" className="h-8 text-xs bg-[#F8FBFF] hover:bg-[#EEF4FF] px-3" text="Share INHERIX" />
+              </div>
             </div>
 
             <button
@@ -234,10 +239,13 @@ export default function MobileSidebar({ open, setOpen }: Props) {
 
               <button
                 onClick={() => void handleSignOut()}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                className="group relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-300 hover:border-red-100 hover:shadow-sm"
               >
-                <LogOut className="h-4 w-4" />
-                Sign out
+                <div className="absolute inset-0 bg-gradient-to-r from-red-50/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition-colors duration-300 group-hover:bg-red-100 group-hover:text-red-500">
+                  <LogOut className="h-3.5 w-3.5" />
+                </div>
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-red-600">Sign out securely</span>
               </button>
             </div>
           )}

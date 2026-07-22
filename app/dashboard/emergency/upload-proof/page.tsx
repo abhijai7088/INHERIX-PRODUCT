@@ -410,10 +410,41 @@ function UploadProofContent() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-medium text-[#0F172A]">Proof file</label>
-                  <Input type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
-                  <p className="text-xs text-slate-500">
-                    PDF, JPG or PNG only. The backend records file metadata and returns a signed upload URL.
-                  </p>
+                  {!file ? (
+                    <div className="group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[24px] border-2 border-dashed border-[#DCE3EC] bg-[#F8FAFC] p-10 transition-all duration-300 hover:border-[#163B8C] hover:bg-[#F0F5FF]">
+                      <input
+                        type="file"
+                        onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                      />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-white text-[#163B8C] shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105">
+                        <UploadCloud className="h-8 w-8" />
+                      </div>
+                      <p className="mt-6 text-base font-semibold text-[#0F172A]">
+                        Click to select or drag and drop
+                      </p>
+                      <p className="mt-2 text-sm text-slate-500">
+                        PDF, JPG or PNG only
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4 rounded-[24px] border border-[#163B8C] bg-[#F8FBFF] p-4 shadow-sm">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[#163B8C] text-white">
+                        <FileText className="h-7 w-7" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-[#163B8C]">Selected file</p>
+                        <p className="mt-1 truncate font-semibold text-[#0F172A]">{file.name}</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {file.type || "application/octet-stream"} • {formatBytes(file.size)}
+                        </p>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setFile(null)} className="h-10 w-10 shrink-0 text-slate-400 hover:bg-red-50 hover:text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {request.status === "UNDER_REVIEW" || request.status === "PENDING" || request.status === "ADDITIONAL_INFO_REQUIRED" ? (
@@ -426,7 +457,7 @@ function UploadProofContent() {
                 ) : null}
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#0F172A]">Notes</label>
+                  <label className="text-sm font-medium text-[#0F172A]">Supporting notes</label>
                   <Textarea
                     value={notes}
                     onChange={(event) => setNotes(event.target.value)}
@@ -434,16 +465,6 @@ function UploadProofContent() {
                     placeholder="Explain how the proof supports the request."
                   />
                 </div>
-
-                {file ? (
-                  <div className="rounded-[24px] border border-[#DCE3EC] bg-[#F8FAFC] p-4">
-                    <p className="text-xs uppercase tracking-wider text-slate-500">Selected file</p>
-                    <p className="mt-2 font-semibold text-[#0F172A]">{file.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {file.type || "application/octet-stream"} • {formatBytes(file.size)}
-                    </p>
-                  </div>
-                ) : null}
 
                 <div className="flex flex-wrap gap-3">
                   <Button type="submit" disabled={!canUpload || submitting}>

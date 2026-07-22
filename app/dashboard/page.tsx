@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Activity, Bell, Calendar, ChevronRight, Download, Lock, Shield, ShieldAlert, ShieldCheck, UserPlus, Users, FileText, CheckCircle2, AlertTriangle, AlertCircle, Share2, PlusCircle, ArrowRight, History } from "lucide-react";
 
 import { useRecordsStore } from "@/components/dashboard/RecordsProvider";
+import { SetupStepper } from "@/components/dashboard/SetupStepper";
 
 export default function DashboardPage() {
   // DashboardRouteGate (parent layout) already guarantees only CUSTOMER role reaches this page
@@ -99,16 +100,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 mt-4">
         {/* Main Content Area (Left) */}
         <div className="flex-1 min-w-0 space-y-4 sm:space-y-6">
+          <SetupStepper />
+          
           {/* Top 4 Stats Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
             {/* Score */}
             <div className="rounded-[16px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-700">Family Continuity Score</p>
-                <div className="mt-4 flex items-center gap-4">
+                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   <div className="relative flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full border-4 border-slate-100">
                     <svg className={`absolute inset-0 h-full w-full -rotate-90 ${continuityScore > 50 ? 'text-[#163B8C]' : 'text-amber-500'}`} viewBox="0 0 36 36">
                       <path strokeDasharray={`${continuityScore}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -120,7 +123,7 @@ export default function DashboardPage() {
                       {continuityScore > 75 ? "Excellent" : continuityScore > 40 ? "Good" : "Needs Action"}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                      {continuityScore > 75 ? "You are doing\ngreat!" : "Take action to\nimprove score"}
+                      {continuityScore > 75 ? "You are doing great!" : "Take action to improve score"}
                     </p>
                   </div>
                 </div>
@@ -134,7 +137,7 @@ export default function DashboardPage() {
             <div className="rounded-[16px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-700">Family Readiness</p>
-                <div className="mt-4 flex items-center gap-4">
+                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   <div className="relative flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full border-4 border-slate-100">
                     <svg className={`absolute inset-0 h-full w-full -rotate-90 ${readinessScore === 100 ? 'text-emerald-500' : 'text-amber-500'}`} viewBox="0 0 36 36">
                       <path strokeDasharray={`${readinessScore}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -158,7 +161,7 @@ export default function DashboardPage() {
             <div className="rounded-[16px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-700">Emergency Readiness</p>
-                <div className="mt-4 flex items-center gap-4">
+                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   <div className={`flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full ${emergencyReady ? 'bg-emerald-50 border border-emerald-100' : 'bg-amber-50 border border-amber-100'}`}>
                     {emergencyReady ? (
                       <ShieldCheck className="h-7 w-7 text-emerald-500" />
@@ -183,13 +186,13 @@ export default function DashboardPage() {
             <div className="rounded-[16px] bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-700">Last Activity</p>
-                <div className="mt-4 flex items-center gap-4">
+                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   <div className="flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full bg-blue-50 border border-blue-100">
                     <Calendar className="h-7 w-7 text-[#163B8C]" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-800">{lastActivityDate}</p>
-                    <p className="text-xs text-slate-500 leading-snug mt-1">Most recent<br/>interaction.</p>
+                    <p className="text-xs text-slate-500 leading-snug mt-1">Most recent interaction.</p>
                   </div>
                 </div>
               </div>

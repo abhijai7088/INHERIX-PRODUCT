@@ -623,8 +623,12 @@ export function createPostgresReleaseStore(pool: Pool): ReleaseStore {
          INNER JOIN nominees n ON n.id = dr.nominee_id
          INNER JOIN documents d ON d.id = dr.document_id
          INNER JOIN document_categories c ON c.id = d.category_id
+         INNER JOIN trigger_requests tr ON tr.id = dr.trigger_request_id
          LEFT JOIN users u ON u.id = dr.released_by
-         WHERE n.nominee_user_id = $1 AND dr.release_status = 'RELEASED' AND d.status = 'ACTIVE'
+         WHERE n.nominee_user_id = $1
+           AND dr.release_status = 'RELEASED'
+           AND d.status = 'ACTIVE'
+           AND tr.status = 'APPROVED'
          ORDER BY dr.updated_at DESC`,
         [nomineeUserId]
       );

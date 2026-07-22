@@ -1,6 +1,7 @@
 import {
   Activity,
   CheckSquare,
+  ClipboardCheck,
   FolderOpen,
   History as HistoryIcon,
   ShieldCheck,
@@ -93,6 +94,7 @@ const adminNavigationSections: NavigationSection[] = [
   {
     title: "Super Admin Control",
     items: [
+      { title: "Final Approvals", href: "/dashboard/admin/approvals", icon: ClipboardCheck, requiredPermission: "SUPER_ADMIN_MANAGE_SYSTEM_SETTINGS" },
       { title: "Admin & Officer Setup", href: "/dashboard/settings", icon: UserCog, requiredPermission: "SUPER_ADMIN_MANAGE_SYSTEM_SETTINGS" },
       { title: "Officer Registry", href: "/dashboard/officers", icon: Users, requiredPermission: "SUPER_ADMIN_MANAGE_ADMINS" },
       { title: "Access Matrix", href: "/dashboard/rbac", icon: ShieldCheck, requiredPermission: "SUPER_ADMIN_MANAGE_PERMISSIONS" },

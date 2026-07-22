@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
+import { ShareAppButton } from "@/components/inherix/share-button";
 
 type Props = {
   className?: string;
@@ -25,6 +26,10 @@ export default function BrandHeader({ className }: Props) {
           <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#163B8B] sm:text-[13px]">
             Digital Continuity Institution
           </p>
+        </div>
+        
+        <div className="ml-auto">
+          <ShareAppButton variant="outline" className="h-10 px-4" />
         </div>
       </div>
 

@@ -235,16 +235,18 @@ function ProfileShellContent({ children }: { children: ReactNode }) {
               <p className="text-sm leading-6 text-slate-500">
                 End the current browser session and clear the authenticated profile surface before you leave the workstation.
               </p>
-              <Button
+              <button
                 type="button"
-                variant="destructive"
-                className="w-full"
+                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-[16px] bg-white border border-[#DCE3EC] px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:border-red-200 hover:shadow-[0_8px_20px_rgba(239,68,68,0.12)] disabled:opacity-50"
                 onClick={() => void handleSignOut()}
                 disabled={signingOut}
               >
-                <LogOut className="h-4 w-4" />
-                {signingOut ? "Signing out..." : "Sign out"}
-              </Button>
+                <div className="absolute inset-0 bg-gradient-to-r from-red-50 to-white opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <LogOut className="relative z-10 h-4 w-4 text-slate-400 transition-colors duration-300 group-hover:text-red-500" />
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-red-600">
+                  {signingOut ? "Signing out securely..." : "Sign out securely"}
+                </span>
+              </button>
             </CardContent>
           </Card>
 

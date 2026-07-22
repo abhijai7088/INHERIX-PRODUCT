@@ -70,6 +70,8 @@ function mapTriggerRequest(row: Record<string, unknown>): TriggerRequestRecord {
     additionalInfoRequestedAt: toIso(row.additional_info_requested_at as NullableDate),
     additionalInfoReason: row.additional_info_reason ? String(row.additional_info_reason) : null,
     adminDecisionNote: row.admin_remarks ? String(row.admin_remarks) : null,
+    superAdminDecisionNote: row.super_admin_decision_note ? String(row.super_admin_decision_note) : null,
+    superAdminReviewedAt: toIso(row.super_admin_reviewed_at as NullableDate),
     latestActivityAt: toIso(row.latest_activity_at as NullableDate) ?? new Date().toISOString(),
     createdAt: toIso(row.created_at as NullableDate) ?? new Date().toISOString(),
     updatedAt: toIso(row.updated_at as NullableDate) ?? new Date().toISOString(),
@@ -197,6 +199,15 @@ export type TriggerStore = {
     additionalInfoReason?: string | null
   ): Promise<TriggerRequestRecord | null>;
   createVerificationNote(requestId: string, adminUserId: string, note: string): Promise<void>;
+  listRequestsForSuperAdminQueue(): Promise<TriggerRequestRecord[]>;
+  findSuperAdminUserIds(): Promise<string[]>;
+  updateRequestSuperAdminDecision(
+    requestId: string,
+    status: "APPROVED" | "REJECTED",
+    actorUserId: string,
+    actorRole: TriggerActorRole,
+    decisionNote: string | null
+  ): Promise<TriggerRequestRecord | null>;
 };
 
 export function createPostgresTriggerStore(pool: Pool): TriggerStore {
@@ -833,6 +844,109 @@ export function createPostgresTriggerStore(pool: Pool): TriggerStore {
         [requestId, adminUserId, note]
       );
     },
+    async listRequestsForSuperAdminQueue() {
+      return queryRequests(
+        `SELECT
+           tr.id,
+           tr.customer_id,
+           customer.full_name AS customer_full_name,
+           (
+             SELECT COUNT(*)
+             FROM trigger_proofs p
+             WHERE p.trigger_request_id = tr.id
+           ) AS proof_count,
+           tr.nominee_id,
+           n.nominee_user_id,
+           n.full_name AS nominee_full_name,
+           n.email AS nominee_email,
+           n.mobile AS nominee_mobile,
+           n.relationship,
+           n.custom_relationship,
+           tr.document_id,
+           d.document_title,
+           ar.id AS access_rule_id,
+           ar.document_id AS access_rule_document_id,
+           ar.category_id AS access_rule_category_id,
+           ar.can_view AS access_rule_can_view,
+           ar.can_download AS access_rule_can_download,
+           ar.release_condition AS access_rule_condition,
+           ar.condition_notes AS access_rule_notes,
+           tr.request_kind,
+           tr.subject_line,
+           tr.reason,
+           tr.priority,
+           tr.status,
+           tr.submitted_at,
+           tr.reviewed_at,
+           tr.resolved_at,
+           tr.cancelled_at,
+           tr.additional_info_requested_at,
+           tr.additional_info_reason,
+           tr.admin_remarks,
+           tr.super_admin_decision_note,
+           tr.super_admin_reviewed_by,
+           tr.super_admin_reviewed_at,
+           tr.latest_activity_at,
+           tr.created_at,
+           tr.updated_at,
+           tr.requested_by_user_id,
+           tr.last_action_by_user_id,
+           u.full_name AS last_action_by_name,
+           tr.last_action_role
+         FROM trigger_requests tr
+         INNER JOIN users customer ON customer.id = tr.customer_id
+         INNER JOIN nominees n ON n.id = tr.nominee_id
+         LEFT JOIN documents d ON d.id = tr.document_id
+         LEFT JOIN LATERAL (
+           SELECT rule.id, rule.document_id, rule.category_id, rule.can_view, rule.can_download, rule.release_condition, rule.condition_notes
+           FROM document_access_rules rule
+           WHERE rule.customer_id = tr.customer_id
+             AND rule.nominee_id = tr.nominee_id
+             AND rule.is_active = TRUE
+             AND rule.deleted_at IS NULL
+             AND tr.document_id IS NOT NULL
+             AND (
+               (rule.document_id IS NOT NULL AND rule.document_id = tr.document_id)
+               OR (rule.category_id IS NOT NULL AND rule.category_id = d.category_id)
+             )
+           ORDER BY CASE WHEN rule.document_id = tr.document_id THEN 0 ELSE 1 END, rule.updated_at DESC
+           LIMIT 1
+         ) ar ON TRUE
+         LEFT JOIN users u ON u.id = tr.last_action_by_user_id
+         WHERE tr.status = 'PENDING_SUPER_ADMIN_APPROVAL'
+         ORDER BY tr.latest_activity_at DESC, tr.created_at DESC`,
+        []
+      );
+    },
+    async findSuperAdminUserIds() {
+      const result = await pool.query(
+        `SELECT id FROM users WHERE role = 'SUPER_ADMIN' AND status = 'ACTIVE'`
+      );
+      return result.rows.map((row: Record<string, unknown>) => String(row.id));
+    },
+    async updateRequestSuperAdminDecision(requestId, status, actorUserId, actorRole, decisionNote) {
+      const result = await pool.query(
+        `UPDATE trigger_requests
+         SET status = $2::trigger_status,
+             super_admin_decision_note = COALESCE($3, super_admin_decision_note),
+             super_admin_reviewed_by = $4,
+             super_admin_reviewed_at = CURRENT_TIMESTAMP,
+             resolved_at = CASE WHEN $2::text IN ('APPROVED', 'REJECTED') THEN CURRENT_TIMESTAMP ELSE resolved_at END,
+             latest_activity_at = CURRENT_TIMESTAMP,
+             last_action_by_user_id = $4,
+             last_action_role = $5,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1 AND status = 'PENDING_SUPER_ADMIN_APPROVAL'
+         RETURNING id`,
+        [requestId, status, decisionNote, actorUserId, actorRole]
+      );
+
+      if (!result.rows[0]) {
+        return null;
+      }
+
+      return findRequestByIdInternal(requestId);
+    },
     async listTimeline(requestId) {
       const request = await findRequestByIdInternal(requestId);
       if (!request) {
@@ -930,19 +1044,34 @@ export function createPostgresTriggerStore(pool: Pool): TriggerStore {
       }
 
       if (request.resolvedAt && (request.status === "APPROVED" || request.status === "REJECTED")) {
+        const isApproved = request.status === "APPROVED";
         timeline.push({
           id: `timeline-${request.id}-${request.status.toLowerCase()}`,
           requestId: request.id,
-          action: request.status === "APPROVED" ? "Request approved" : "Request rejected",
+          action: isApproved ? "Super Admin approved" : "Super Admin rejected",
           status: request.status,
-          actorName: request.lastActionByName ?? "Verification officer",
+          actorName: request.lastActionByName ?? "Super Admin",
           actorRole: "admin",
           summary:
-            request.adminDecisionNote ??
-            (request.status === "APPROVED"
-              ? "The trigger request was approved after proof review."
-              : "The trigger request was rejected after proof review."),
+            request.superAdminDecisionNote ??
+            (isApproved
+              ? "The trigger request was approved by the Super Admin. Documents are now accessible to the nominee."
+              : "The trigger request was rejected by the Super Admin after review."),
           createdAt: request.resolvedAt,
+        });
+      }
+
+      // Add PENDING_SUPER_ADMIN_APPROVAL as timeline step if not yet resolved
+      if (request.status === "PENDING_SUPER_ADMIN_APPROVAL") {
+        timeline.push({
+          id: `timeline-${request.id}-pending-sa`,
+          requestId: request.id,
+          action: "Awaiting Super Admin approval",
+          status: "PENDING_SUPER_ADMIN_APPROVAL",
+          actorName: request.lastActionByName ?? "Verification officer",
+          actorRole: "admin",
+          summary: "The Verification Officer has verified the proof. Waiting for Super Admin final approval.",
+          createdAt: request.latestActivityAt,
         });
       }
 
